@@ -151,7 +151,6 @@ public class UseCaseTest<I, O> {
     /**
      * Execute the use case if it hasn't been executed yet.
      */
-    @SuppressWarnings("unchecked")
     private void executeIfNeeded() {
         if (executed) {
             return;

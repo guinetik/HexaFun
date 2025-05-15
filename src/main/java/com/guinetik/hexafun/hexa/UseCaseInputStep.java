@@ -1,9 +1,9 @@
 package com.guinetik.hexafun.hexa;
 
-import java.util.function.Function;
-
-import com.guinetik.hexafun.fun.Result;
-
+/**
+ * Builder step for defining the input handling of a use case.
+ * @param <I> The input type of the use case
+ */
 public class UseCaseInputStep<I> {
 
     private final String name;
@@ -14,13 +14,23 @@ public class UseCaseInputStep<I> {
         this.builder = builder;
     }
 
-    public <O> UseCaseOutputStep<I, O> to(Function<I, O> logic) {
-        UseCase<I, O> uc = logic::apply;
-        builder.register(name, uc);
+    /**
+     * Define the core logic of the use case.
+     * @param handler The use case logic that processes the input and produces output
+     * @param <O> The output type of the use case
+     * @return The next step in the builder chain
+     */
+    public <O> UseCaseOutputStep<I, O> to(UseCase<I, O> handler) {
+        builder.register(name, handler);
         return new UseCaseOutputStep<>(builder);
     }
 
-    public <M> UseCaseValidationStep<I, M> from(Function<I, Result<M>> validator) {
+    /**
+     * Define a validation step before the core use case logic.
+     * @param validator The validation port that checks the input
+     * @return The next step in the builder chain
+     */
+    public UseCaseValidationStep<I, I> from(ValidationPort<I> validator) {
         return new UseCaseValidationStep<>(name, builder, validator);
     }
 }

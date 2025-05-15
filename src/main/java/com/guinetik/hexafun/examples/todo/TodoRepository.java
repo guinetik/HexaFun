@@ -5,6 +5,7 @@ import java.util.Optional;
 
 /**
  * Output port for interacting with Todo storage.
+ * This is a secondary/driven port in Hexagonal Architecture.
  */
 public interface TodoRepository {
     /**
