@@ -1,18 +1,18 @@
-# Manual vs DSL Example
+# Manual vs DSL Approach
 
-This example demonstrates two ways to create use cases with HexaFun:
+This example demonstrates two ways to build applications with HexaFun:
 
-1. **Manual Approach** (`ManualExample.java`): 
-   - Create validation ports and use cases explicitly
-   - Manual composition of validation and handling
-   - Direct registration with the HexaApp
+1. **Primitive Approach** (`ManualExample.java`): 
+   - Work directly with the core Hexagonal Architecture components
+   - Create and compose ports and adapters explicitly
+   - Full control over the wiring of components
 
 2. **DSL Approach** (`DslExample.java`):
    - Use the fluent builder pattern
    - Concise, declarative style
-   - Automatic composition of validation and handling
+   - Automatic composition of components
 
-Both approaches achieve the same result, but the DSL provides a more readable and maintainable way to define use cases.
+Both approaches achieve the same result, but they serve different purposes and preferences.
 
 ## Domain Model
 
@@ -23,7 +23,7 @@ The example uses a simple `Counter` domain model with operations:
 
 ## Running the Examples
 
-To run the manual example:
+To run the primitive approach example:
 ```
 mvn exec:java -Dexec.mainClass="com.guinetik.hexafun.examples.manual.ManualExample"
 ```
@@ -33,33 +33,75 @@ To run the DSL example:
 mvn exec:java -Dexec.mainClass="com.guinetik.hexafun.examples.manual.DslExample"
 ```
 
-## Key Differences
+## Core Primitives
 
-### Manual Approach
+At the heart of HexaFun are the core hexagonal architecture primitives:
+
+### Ports
 ```java
-// Create ports and use cases
+// Primary/driving port
+public interface InputPort<I, O> {
+    O handle(I input);
+}
+
+// Secondary/driven port
+public interface OutputPort<I, O> {
+    O apply(I input);
+}
+
+// Core business logic interface
+public interface UseCase<I, O> {
+    O apply(I input);
+}
+
+// Validation interface
+public interface ValidationPort<I> {
+    Result<I> validate(I input);
+}
+```
+
+### Manual Composition
+```java
+// 1. Create validation port
 ValidationPort<IncrementInput> incrementValidator = CounterOperations::validateCounter;
+
+// 2. Create use case handler
 UseCase<IncrementInput, Result<Counter>> incrementHandler = 
         input -> Result.ok(input.getCounter().increment());
 
-// Compose use cases manually
+// 3. Compose use cases manually
 UseCase<IncrementInput, Result<Counter>> incrementUseCase = 
         input -> incrementValidator.validate(input).flatMap(i -> incrementHandler.apply(i));
 
-// Register with the app
+// 4. Register with the app
 HexaApp app = HexaApp.create();
 app.withUseCase("increment", incrementUseCase);
 ```
 
-### DSL Approach
+## DSL for Simplified Composition
+
+The DSL provides a more expressive way to achieve the same result:
+
 ```java
-// Create and compose in one step
+// All-in-one definition
 HexaApp app = HexaFun.dsl()
     .<IncrementInput>useCase("increment")
-        .from(CounterOperations::validateCounter)
-        .to(input -> Result.ok(input.getCounter().increment()))
+        .from(CounterOperations::validateCounter)             // validation
+        .to(input -> Result.ok(input.getCounter().increment())) // handling
         .and()
     .build();
 ```
 
-The DSL approach is more concise and readable but the manual approach offers finer control when needed.
+## When to Use Each Approach
+
+- **Use the primitive approach when**:
+  - You need fine-grained control over component composition
+  - You're extending the framework with custom behaviors
+  - You're integrating with other frameworks or systems
+  - You're writing tests that mock specific components
+
+- **Use the DSL approach when**:
+  - You want cleaner, more readable code
+  - Your use cases follow standard patterns
+  - You're defining multiple related use cases
+  - You want to focus on the business logic rather than the wiring
