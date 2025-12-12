@@ -1,4 +1,11 @@
-target/*
+target
+bin
+.idea
+.vscode
+.DS_Store
+.env
+.env.local
+.env.development.local
 # Compiled class file
 *.class
 
