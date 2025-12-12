@@ -23,7 +23,7 @@
         <maven.compiler.target>17</maven.compiler.target>
         <junit.version>5.9.2</junit.version>
         <jacoco.version>0.8.11</jacoco.version>
-        <terminaljavadocs.version>1.0.0-SNAPSHOT</terminaljavadocs.version>
+        <terminaljavadocs.version>1.0.0</terminaljavadocs.version>
     </properties>
 
     <dependencies>

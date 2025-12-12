@@ -67,7 +67,7 @@
         <junit.version>5.9.2</junit.version>
         <jacoco.version>0.8.11</jacoco.version>
         <!-- TerminalJavadocs configuration -->
-        <terminaljavadocs.version>1.0.0-SNAPSHOT</terminaljavadocs.version>
+        <terminaljavadocs.version>1.0.0</terminaljavadocs.version>
         <terminaljavadocs.project.name>HexaFun</terminaljavadocs.project.name>
         <terminaljavadocs.github.user>guinetik</terminaljavadocs.github.user>
         <terminaljavadocs.github.repo>hexafun</terminaljavadocs.github.repo>
