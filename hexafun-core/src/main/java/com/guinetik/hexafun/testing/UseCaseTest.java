@@ -155,13 +155,13 @@ public class UseCaseTest<I, O> {
         if (executed) {
             return;
         }
-        
+
         try {
-            output = app.invoke(useCaseName, input);
+            output = app.invokeByName(useCaseName, input);
         } catch (Exception e) {
             exception = e;
         }
-        
+
         executed = true;
     }
 }

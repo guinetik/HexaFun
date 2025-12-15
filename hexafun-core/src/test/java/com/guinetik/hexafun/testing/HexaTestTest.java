@@ -3,7 +3,9 @@ package com.guinetik.hexafun.testing;
 import com.guinetik.hexafun.HexaApp;
 import com.guinetik.hexafun.HexaFun;
 import com.guinetik.hexafun.fun.Result;
+import com.guinetik.hexafun.hexa.UseCaseKey;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -11,137 +13,131 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Unit tests for the HexaTest framework.
  */
+@DisplayName("HexaTest")
 public class HexaTestTest {
-    
+
+    // Type-safe keys
+    static final UseCaseKey<Object, Object> ECHO = UseCaseKey.of("echo");
+    static final UseCaseKey<String, Result<String>> VALIDATE = UseCaseKey.of("validate");
+    static final UseCaseKey<Object, Object> THROWS = UseCaseKey.of("throws");
+
     private HexaApp app;
-    
+
     @BeforeEach
     void setUp() {
-        // Create a test app with some use cases
         app = HexaFun.dsl()
-            .useCase("echo")
-                .to(input -> input)
-                .and()
-            .useCase("validate")
-                .from(input -> {
-                    String str = (String) input;
-                    if (str == null || str.isEmpty()) {
+            .useCase(ECHO)
+                .handle(input -> input)
+            .useCase(VALIDATE)
+                .validate(input -> {
+                    if (input == null || input.isEmpty()) {
                         return Result.fail("Input cannot be empty");
                     }
-                    return Result.ok(str);
+                    return Result.ok(input);
                 })
-                .to(str -> Result.ok("Valid: " + str))
-                .and()
-            .useCase("throws")
-                .to(input -> {
+                .handle(str -> Result.ok("Valid: " + str))
+            .useCase(THROWS)
+                .handle(input -> {
                     throw new RuntimeException("Test exception");
                 })
-                .and()
             .build();
     }
-    
+
     @Test
+    @DisplayName("expectOk should pass when result matches")
     void testExpectOk() {
-        // Test a use case with expectOk
-        HexaTest.forApp(app)
-            .useCase("echo")
+        app.test(ECHO)
             .with("Hello")
             .expectOk(result -> {
                 assertEquals("Hello", result);
             });
     }
-    
+
     @Test
+    @DisplayName("expect with predicate should pass when predicate returns true")
     void testExpectWithPredicate() {
-        // Test a use case with expect predicate
-        HexaTest.forApp(app)
-            .useCase("echo")
+        app.test(ECHO)
             .with("Hello")
             .expect(result -> "Hello".equals(result), "result equal to 'Hello'");
-        
-        // Test with failing predicate
+    }
+
+    @Test
+    @DisplayName("expect with predicate should fail when predicate returns false")
+    void testExpectPredicateFails() {
         assertThrows(AssertionError.class, () -> {
-            HexaTest.forApp(app)
-                .useCase("echo")
+            app.test(ECHO)
                 .with("Hello")
                 .expect(result -> "Wrong".equals(result), "result equal to 'Wrong'");
         });
     }
-    
+
     @Test
+    @DisplayName("expectFailure should pass when validation fails")
     void testExpectFailure() {
-        // Test a use case with expectFailure
-        HexaTest.forApp(app)
-            .useCase("validate")
+        app.test(VALIDATE)
             .with("")
             .expectFailure(error -> {
                 assertEquals("Input cannot be empty", error);
             });
     }
-    
+
     @Test
+    @DisplayName("expectException should pass when exception thrown")
     void testExpectException() {
-        // Test a use case with expectException
-        HexaTest.forApp(app)
-            .useCase("throws")
+        app.test(THROWS)
             .with("anything")
             .expectException(RuntimeException.class);
-        
-        // Test with wrong exception type
+    }
+
+    @Test
+    @DisplayName("expectException should fail with wrong exception type")
+    void testExpectExceptionWrongType() {
         assertThrows(AssertionError.class, () -> {
-            HexaTest.forApp(app)
-                .useCase("throws")
+            app.test(THROWS)
                 .with("anything")
                 .expectException(IllegalArgumentException.class);
         });
     }
-    
+
     @Test
+    @DisplayName("map should transform result")
     void testMap() {
-        // Test mapping the result
-        HexaTest.forApp(app)
-            .useCase("echo")
+        app.test(ECHO)
             .with("Hello")
             .map(result -> ((String) result).length())
             .expectOk(length -> {
                 assertEquals(5, length);
             });
     }
-    
+
     @Test
+    @DisplayName("hasUseCase should pass for registered use cases")
     void testHasUseCase() {
-        // Test asserting that a use case exists
         HexaTest hexaTest = HexaTest.forApp(app);
-        
-        // Should pass
+
         hexaTest.hasUseCase("echo");
         hexaTest.hasUseCase("validate");
         hexaTest.hasUseCase("throws");
-        
-        // Should fail
+    }
+
+    @Test
+    @DisplayName("hasUseCase should fail for non-existent use case")
+    void testHasUseCaseFails() {
+        HexaTest hexaTest = HexaTest.forApp(app);
         assertThrows(AssertionError.class, () -> hexaTest.hasUseCase("nonexistent"));
     }
-    
+
     @Test
+    @DisplayName("doesNotHaveUseCase should pass for non-existent use case")
     void testDoesNotHaveUseCase() {
-        // Test asserting that a use case does not exist
         HexaTest hexaTest = HexaTest.forApp(app);
-        
-        // Should pass
         hexaTest.doesNotHaveUseCase("nonexistent");
-        
-        // Should fail
-        assertThrows(AssertionError.class, () -> hexaTest.doesNotHaveUseCase("echo"));
     }
-    
+
     @Test
-    void testShortMethodName() {
-        // Test the shorter test() method
-        HexaTest.forApp(app)
-            .test("echo") // Same as useCase("echo")
-            .with("Test")
-            .expectOk(result -> {
-                assertEquals("Test", result);
-            });
+    @DisplayName("doesNotHaveUseCase should fail for existing use case")
+    void testDoesNotHaveUseCaseFails() {
+        HexaTest hexaTest = HexaTest.forApp(app);
+        assertThrows(AssertionError.class, () -> hexaTest.doesNotHaveUseCase("echo"));
     }
 }
