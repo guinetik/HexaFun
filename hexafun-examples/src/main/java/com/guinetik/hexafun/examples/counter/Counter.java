@@ -1,38 +1,26 @@
 package com.guinetik.hexafun.examples.counter;
 
 /**
- * A simple counter domain model.
- * Immutable value object with increment/decrement operations.
+ * Immutable counter value object.
  */
-public class Counter {
-    private final int value;
-    
-    private Counter(int value) {
-        this.value = value;
-    }
-    
-    public int getValue() {
-        return value;
-    }
-    
+public record Counter(int value) {
     public Counter increment() {
         return new Counter(value + 1);
     }
-    
+
     public Counter decrement() {
         return new Counter(value - 1);
     }
-    
+
     public Counter add(int amount) {
         return new Counter(value + amount);
     }
-    
-    public static Counter of(int initialValue) {
-        return new Counter(initialValue);
+
+    public static Counter zero() {
+        return new Counter(0);
     }
-    
-    @Override
-    public String toString() {
-        return "Counter(" + value + ")";
+
+    public static Counter of(int value) {
+        return new Counter(value);
     }
 }

@@ -18,7 +18,7 @@
     <description>Examples of using HexaFun</description>
 
     <properties>
-        <exec.mainClass>com.guinetik.hexafun.examples.todo.TodoAppDemo</exec.mainClass>
+        <exec.mainClass>com.guinetik.hexafun.examples.counter.CounterApp</exec.mainClass>
     </properties>
 
     <dependencies>
@@ -133,6 +133,21 @@
                                 </rule>
                             </rules>
                         </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Inject Terminal Javadocs styles -->
+            <plugin>
+                <groupId>com.guinetik</groupId>
+                <artifactId>terminaljavadocs-maven-plugin</artifactId>
+                <version>${terminaljavadocs.version}</version>
+                <executions>
+                    <execution>
+                        <id>inject-styles</id>
+                        <phase>site</phase>
+                        <goals>
+                            <goal>inject-styles</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>
