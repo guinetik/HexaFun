@@ -1,4 +1,4 @@
-# HexaFun 🧹
+# HexaFun ⚽
 
 > A functional, declarative Java framework for building Hexagonal Architecture apps with serious swagg.
 
@@ -7,30 +7,29 @@ Forget the ceremony. Focus on composing behavior.
 
 ---
 
-## 🔷 What is HexaFun?
+## What is HexaFun?
 
-HexaFun brings **Hexagonal Architecture** into the functional age — with minimal boilerplate and maximum clarity.
+HexaFun brings **Hexagonal Architecture** into the functional age with minimal boilerplate and maximum clarity.
 
-* 🚪 Define use cases with clear port interfaces
-* 🧠 Pure business logic, no frameworks leaking in
-* 🔌 Plug in real adapters (HTTP, DB, Messaging) when *you* want
-* 💡 Composable, testable, functional-by-design
+* Define use cases with clear port interfaces
+* Pure business logic, no frameworks leaking in
+* Plug in real adapters (HTTP, DB, Messaging) when *you* want
+* Composable, testable, functional-by-design
 
 ---
 
-## 🧪 Example Applications
+## Example Applications
 
-- **TodoApp**: A complete Todo application in `com.guinetik.hexafun.examples.todo`
-- **Manual vs DSL**: Compare both approaches in `com.guinetik.hexafun.examples.manual`
+- **Counter**: A counter application demonstrating the fluent DSL in `com.guinetik.hexafun.examples.counter`
 
-Run the TodoAppDemo class to see an interactive console UI in action!
+Run the CounterApp class to see it in action:
 ```shell
-mvn exec:java
+mvn exec:java -pl hexafun-examples
 ```
 
 ---
 
-## 🧱 Architecture Overview
+## Architecture Overview
 
 ```
                      ┌────────────────────────┐
@@ -74,9 +73,9 @@ HexaFun modernizes Hexagonal Architecture with functional programming principles
 
 1. **Functional Core Primitives**:
    - `UseCase<I, O>`: Core business logic operations with clean input/output contracts
-   - `InputPort<I, O>`: Primary/driving ports for application entry points
-   - `OutputPort<I, O>`: Secondary/driven ports for external dependencies
+   - `UseCaseKey<I, O>`: Type-safe keys for compile-time dispatch safety
    - `ValidationPort<I>`: Input validation with clear error boundaries
+   - Port Registry: Type-safe dependency injection for external dependencies
 
 2. **Functional Error Handling**:
    - Uses the `Result<T>` monad to handle errors without exceptions
@@ -89,11 +88,13 @@ HexaFun modernizes Hexagonal Architecture with functional programming principles
 
 4. **Fluent DSL** for use case composition:
    ```java
+   // Define type-safe keys
+   UseCaseKey<Input, Result<Output>> CREATE = UseCaseKey.of("create");
+
    HexaApp app = HexaFun.dsl()
-       .useCase("createTask")
-           .from(this::validateInput)
-           .to(this::executeUseCase)
-           .and()
+       .useCase(CREATE)
+           .validate(this::validateInput)
+           .handle(this::executeUseCase)
        .build();
    ```
 
@@ -111,7 +112,7 @@ HexaFun removes much of the boilerplate traditionally associated with Hexagonal 
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Core Primitives
 
@@ -130,104 +131,105 @@ public interface ValidationPort<I> {
     Result<I> validate(I input);
 }
 
-// External dependencies (repositories, services)
-public interface OutputPort<I, O> {
-    O apply(I input);
+// External dependencies - define your own interfaces
+public interface TaskRepository {
+    Task save(Task task);
+    Optional<Task> findById(String id);
 }
 ```
 
-#### 2. Manual registration
+#### 2. Define type-safe keys
 
 ```java
-// Create use cases
-ValidationPort<CreateInput> validator = this::validateInput;
-UseCase<CreateInput, Result<Entity>> handler = this::createEntity;
-
-// Compose use cases
-UseCase<CreateInput, Result<Entity>> useCase = 
-    input -> validator.validate(input).flatMap(i -> handler.apply(i));
-
-// Register in the app
-HexaApp app = HexaApp.create();
-app.withUseCase("createEntity", useCase);
+// Type-safe keys carry input/output types at compile time
+UseCaseKey<CreateInput, Result<Entity>> CREATE = UseCaseKey.of("create");
+UseCaseKey<ListInput, List<Entity>> LIST = UseCaseKey.of("list");
 ```
 
-#### 3. Use the app
-
-```java
-Result<Entity> result = app.invoke("createEntity", input);
-```
-
-### Fluent DSL
-
-For a more concise and declarative approach, use the DSL:
+#### 3. Build your app with the Fluent DSL
 
 ```java
 HexaApp app = HexaFun.dsl()
-    .useCase("createTask")
-        .from(this::validateInput)          // validation port
-        .to(this::executeUseCase)           // use case implementation
-        .and()
-    .useCase("listTasks")
-        .to(this::listAllItems)             // no validation needed
-        .and()
+    .useCase(CREATE)
+        .validate(this::validateInput)      // validation port
+        .handle(this::createEntity)         // use case implementation
+    .useCase(LIST)
+        .handle(this::listAllItems)         // no validation needed
     .build();
+```
+
+#### 4. Invoke use cases with type safety
+
+```java
+// Compile-time type checking - wrong input type won't compile
+Result<Entity> result = app.invoke(CREATE, new CreateInput("test"));
 ```
 
 ---
 
-## ✅ Supported Concepts
+## Supported Concepts
 
-| Concept              | How HexaFun Supports It            |
-| -------------------- | ---------------------------------- |
-| Use Cases            | `UseCase<I, O>` interface          |
-| Input Validation     | `ValidationPort<I>` interface      |
-| External Systems     | `OutputPort<I, O>` interface       |
-| Functional Pipelines | Chain `.from(...).to(...)`         |
-| Clean Architecture   | Strict separation of concerns      |
-| Error Handling       | `Result<T>` monadic error handling |
-| Testing              | Declarative testing DSL            |
+| Concept              | How HexaFun Supports It                |
+| -------------------- | -------------------------------------- |
+| Use Cases            | `UseCase<I, O>` interface              |
+| Type-Safe Keys       | `UseCaseKey<I, O>` for safe dispatch   |
+| Input Validation     | `ValidationPort<I>` interface          |
+| Validator Chaining   | Multiple `.validate()` calls           |
+| External Systems     | Port registry with `port(Class, impl)` |
+| Functional Pipelines | Chain `.validate(...).handle(...)`     |
+| Clean Architecture   | Strict separation of concerns          |
+| Error Handling       | `Result<T>` monadic error handling     |
+| Testing              | Declarative testing DSL                |
 
 ---
 
-## 🤪 Test Mode
+## Test Mode
 
 Easily test your use cases with a fluent API:
 
 ```java
-app.test("createTask")
-   .with(new CreateTaskInput("Study HexaFun", "Important"))
-   .expectOk(task -> assertFalse(task.isCompleted()));
+app.test(CREATE)
+   .with(new CreateInput("test"))
+   .expectOk(entity -> assertNotNull(entity.getId()));
+
+app.test(VALIDATE)
+   .with(invalidInput)
+   .expectFailure(error -> assertEquals("Invalid input", error));
 ```
 
-Check out the `TodoAppTest` in the examples for a working demonstration of the testing API.
+Check out the `CounterAppTest` in the examples for a working demonstration of the testing API.
 
 ---
 
-## 🔮 Roadmap
+## Roadmap
 
-* [ ] Output port registry (e.g., `port(TaskRepo.class, impl)`)
 * [ ] Adapter integrations (REST, CLI, Events)
 * [ ] Repository interface and built-in in-memory repo helpers
 * [x] Test DSL
+* [x] Type-safe use case keys
+* [x] Validator chaining
+* [x] Output port registry (`port(TaskRepo.class, impl)`)
+* [x] Query registered use cases (`registeredUseCases()`)
+* [x] Query registered ports (`registeredPorts()`)
 * [ ] Modular grouping support
 
 ---
 
-## ✨ Why Use HexaFun?
+## Why Use HexaFun?
 
-✅ Functional by default  
-✅ Framework-agnostic  
-✅ Clean and declarative  
-✅ Test-friendly  
-✅ Pure Hexagonal vibes  
+* Functional by default
+* Framework-agnostic
+* Clean and declarative
+* Test-friendly
+* Type-safe dispatch
+* Pure Hexagonal vibes
 
 ---
 
-## 📦 Packages
+## Packages
 
-* `com.guinetik.hexafun.hexa` – Hexagonal ports (`UseCase`, `InputPort`, etc)
-* `com.guinetik.hexafun.fun` – Functional primitives (`Result`, etc)
-* `com.guinetik.hexafun` – Core application container (`HexaApp`)
+* `com.guinetik.hexafun.hexa` – Hexagonal ports (`UseCase`, `UseCaseKey`, `ValidationPort`)
+* `com.guinetik.hexafun.fun` – Functional primitives (`Result`)
+* `com.guinetik.hexafun` – Core application container (`HexaApp`, `HexaFun`)
 * `com.guinetik.hexafun.testing` – Testing framework
 * `com.guinetik.hexafun.examples` – Example applications

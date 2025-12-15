@@ -23,7 +23,6 @@
         <maven.compiler.target>17</maven.compiler.target>
         <junit.version>5.9.2</junit.version>
         <jacoco.version>0.8.11</jacoco.version>
-        <terminaljavadocs.version>1.0.0</terminaljavadocs.version>
     </properties>
 
     <dependencies>
@@ -111,29 +110,18 @@
                     </execution>
                 </executions>
             </plugin>
-            <!-- Copy JaCoCo theme from terminaljavadocs -->
+            <!-- Inject Terminal Javadocs styles -->
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
+                <groupId>com.guinetik</groupId>
+                <artifactId>terminaljavadocs-maven-plugin</artifactId>
+                <version>${terminaljavadocs.version}</version>
                 <executions>
                     <execution>
-                        <id>unpack-jacoco-theme</id>
+                        <id>inject-styles</id>
                         <phase>site</phase>
                         <goals>
-                            <goal>unpack</goal>
+                            <goal>inject-styles</goal>
                         </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>com.guinetik</groupId>
-                                    <artifactId>terminaljavadocs-resources</artifactId>
-                                    <version>${terminaljavadocs.version}</version>
-                                    <type>jar</type>
-                                    <includes>jacoco-resources/**</includes>
-                                    <outputDirectory>${project.build.directory}/site/jacoco</outputDirectory>
-                                </artifactItem>
-                            </artifactItems>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>

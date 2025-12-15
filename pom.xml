@@ -1,15 +1,12 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8" ?>
+<project
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+>
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>com.guinetik</groupId>
-        <artifactId>terminaljavadocs</artifactId>
-        <version>1.0.0</version>
-        <relativePath/>
-    </parent>
+    <inceptionYear>2025</inceptionYear>
 
     <groupId>com.guinetik</groupId>
     <artifactId>hexafun-parent</artifactId>
@@ -17,7 +14,8 @@
     <packaging>pom</packaging>
 
     <name>HexaFun</name>
-    <description>A lightweight implementation of the Hexagonal Architecture pattern in Java</description>
+    <description
+    >A lightweight implementation of the Hexagonal Architecture pattern in Java</description>
     <url>https://github.com/guinetik/hexafun</url>
 
     <licenses>
@@ -39,7 +37,8 @@
 
     <scm>
         <connection>scm:git:git://github.com/guinetik/hexafun.git</connection>
-        <developerConnection>scm:git:ssh://github.com:guinetik/hexafun.git</developerConnection>
+        <developerConnection
+        >scm:git:ssh://github.com:guinetik/hexafun.git</developerConnection>
         <url>https://github.com/guinetik/hexafun</url>
     </scm>
 
@@ -67,10 +66,16 @@
         <junit.version>5.9.2</junit.version>
         <jacoco.version>0.8.11</jacoco.version>
         <!-- TerminalJavadocs configuration -->
-        <terminaljavadocs.version>1.0.0</terminaljavadocs.version>
+        <terminaljavadocs.version>1.0.5</terminaljavadocs.version>
         <terminaljavadocs.project.name>HexaFun</terminaljavadocs.project.name>
         <terminaljavadocs.github.user>guinetik</terminaljavadocs.github.user>
         <terminaljavadocs.github.repo>hexafun</terminaljavadocs.github.repo>
+        <terminaljavadocs.project.logo
+        >/images/logo.svg</terminaljavadocs.project.logo>
+        <!-- Plugin versions required by terminaljavadocs skin -->
+        <maven-site-plugin.version>4.0.0-M13</maven-site-plugin.version>
+        <maven-project-info-reports-plugin.version>3.5.0</maven-project-info-reports-plugin.version>
+        <maven-jxr-plugin.version>3.3.2</maven-jxr-plugin.version>
     </properties>
 
     <dependencyManagement>
@@ -112,22 +117,34 @@
 
     <build>
         <plugins>
-            <!-- Activate terminaljavadocs site generation -->
+            <!-- Inject Terminal Javadocs styles -->
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-site-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
+                <groupId>com.guinetik</groupId>
+                <artifactId>terminaljavadocs-maven-plugin</artifactId>
+                <version>${terminaljavadocs.version}</version>
+                <executions>
+                    <execution>
+                        <id>inject-styles</id>
+                        <phase>site</phase>
+                        <goals>
+                            <goal>inject-styles</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
         <pluginManagement>
             <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-site-plugin</artifactId>
+                    <version>${maven-site-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-project-info-reports-plugin</artifactId>
+                    <version>${maven-project-info-reports-plugin.version}</version>
+                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
@@ -162,6 +179,11 @@
                     <artifactId>jacoco-maven-plugin</artifactId>
                     <version>${jacoco.version}</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jxr-plugin</artifactId>
+                    <version>${maven-jxr-plugin.version}</version>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>
@@ -172,6 +194,10 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <doclint>none</doclint>
+                    <failOnWarnings>false</failOnWarnings>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -193,10 +219,22 @@
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <reportSets>
                     <reportSet>
-                        <reports/>
+                        <reports />
+                    </reportSet>
+                </reportSets>
+            </plugin>
+            <!-- JXR Source Cross-Reference Report -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jxr-plugin</artifactId>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>jxr</report>
+                        </reports>
                     </reportSet>
                 </reportSets>
             </plugin>
         </plugins>
     </reporting>
-</project> 
+</project>

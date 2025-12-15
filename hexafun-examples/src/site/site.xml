@@ -1,10 +1,8 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<project
-    xmlns="http://maven.apache.org/DECORATION/1.8.0"
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/DECORATION/1.8.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/DECORATION/1.8.0 https://maven.apache.org/xsd/decoration-1.8.0.xsd"
-    name="HexaFun"
->
+    name="HexaFun Examples">
 
     <skin>
         <groupId>org.apache.maven.skins</groupId>
@@ -20,7 +18,7 @@
                 <name>${terminaljavadocs.project.name}</name>
                 <alt>${terminaljavadocs.project.name}</alt>
                 <src>${terminaljavadocs.project.logo}</src>
-                <href>/index.html</href>
+                <href>../index.html</href>
             </topBarIcon>
             <navBarStyle>navbar-dark</navBarStyle>
             <sourceLineNumbersEnabled>true</sourceLineNumbersEnabled>
@@ -30,30 +28,16 @@
 
     <body>
         <breadcrumbs>
-            <item name="HexaFun" href="index.html" />
+            <item name="HexaFun" href="../index.html"/>
+            <item name="Examples" href="index.html"/>
         </breadcrumbs>
 
-        <menu name="Overview">
-            <item name="Introduction" href="index.html" />
-            <item name="Hexagonal Architecture Tutorial" href="tutorial.html" />
-            <item name="Fluent DSL" href="fluent.html" />
-        </menu>
-
         <menu name="Documentation">
-            <item name="Javadoc" href="apidocs/index.html" />
-            <item name="Source Code (XRef)" href="source-xref.html" />
-            <item name="Code Coverage" href="coverage.html" />
+            <item name="Javadoc" href="apidocs/index.html"/>
+            <item name="Source Code (XRef)" href="xref/index.html"/>
+            <item name="Code Coverage" href="jacoco/index.html"/>
         </menu>
 
-        <menu name="Project Information" ref="reports" />
-
-        <menu name="Links">
-            <item name="GitHub" href="https://github.com/guinetik/hexafun" />
-            <item
-                name="Issues"
-                href="https://github.com/guinetik/hexafun/issues"
-            />
-        </menu>
-
+        <menu name="Project Information" ref="reports"/>
     </body>
 </project>
