@@ -9,7 +9,7 @@ Forget the ceremony. Focus on composing behavior.
 
 ## What is HexaFun?
 
-HexaFun brings **Hexagonal Architecture** into the functional age — with minimal boilerplate and maximum clarity.
+HexaFun brings **Hexagonal Architecture** into the functional age with minimal boilerplate and maximum clarity.
 
 * Define use cases with clear port interfaces
 * Pure business logic, no frameworks leaking in
@@ -49,51 +49,57 @@ Hexagonal Architecture (also known as Ports and Adapters) organizes application 
 
 ## Fluent DSL Example
 
-The DSL provides a concise, declarative way to compose use cases:
+The [Fluent DSL](fluent.html) provides a concise, declarative way to compose use cases with type safety:
 
 ```java
+// Define type-safe keys
+public interface CounterUseCases {
+    UseCaseKey<IncrementInput, Result<Counter>> INCREMENT =
+        UseCaseKey.of("increment");
+    UseCaseKey<AddInput, Result<Counter>> ADD =
+        UseCaseKey.of("add");
+}
+
+// Build the app
 HexaApp app = HexaFun.dsl()
-    // Create a use case with the name "increment"
-    .<IncrementInput>useCase("increment")
-        .from(CounterOperations::validateCounter)
-        .to(input -> Result.ok(input.getCounter().increment()))
-        .and()
-    // Create a use case with the name "decrement"
-    .<DecrementInput>useCase("decrement")
-        .from(CounterOperations::validateCounter)
-        .to(input -> Result.ok(input.getCounter().decrement()))
-        .and()
-    // Create a use case with the name "add"
-    .<AddInput>useCase("add")
-        .from(input -> {
-            Result<AddInput> counterResult = CounterOperations.validateCounter(input);
-            if (counterResult.isFailure()) {
-                return counterResult;
-            }
-            return CounterOperations.validateAmount(input);
-        })
-        .to(input -> Result.ok(input.getCounter().add(input.getAmount())))
-        .and()
+    .useCase(INCREMENT)
+        .validate(CounterValidators::validateIncrement)
+        .handle(input -> Result.ok(input.counter().increment()))
+    .useCase(ADD)
+        .validate(CounterValidators::validateCounter)
+        .validate(CounterValidators::validateAmount)    // Chained validators
+        .handle(input -> Result.ok(input.counter().add(input.amount())))
     .build();
 
-// Invoke use cases by name
-Counter initial = Counter.of(10);
-Result<Counter> result = app.invoke("increment", new IncrementInput(initial));
+// Invoke with type safety
+Result<Counter> result = app.invoke(INCREMENT, new IncrementInput(counter));
 ```
+
+Key features:
+- **Type-safe keys**: `UseCaseKey<I, O>` for compile-time checking
+- **Clear naming**: `validate/handle` instead of `from/to`
+- **Implicit closure**: No `.and()` chaining needed
+- **Validator chaining**: Multiple `.validate()` calls
+- **Port registry**: Type-safe dependency injection with `.withPort()`
+
+See the [Fluent DSL Guide](fluent.html) for complete documentation, or follow
+the [Tutorial](tutorial.html) to build a complete task manager from scratch.
 
 ---
 
 ## Core Concepts
 
-| Concept              | How HexaFun Supports It            |
-| -------------------- | ---------------------------------- |
-| Use Cases            | `UseCase<I, O>` interface          |
-| Input Validation     | `ValidationPort<I>` interface      |
-| External Systems     | `OutputPort<I, O>` interface       |
-| Functional Pipelines | Chain `.from(...).to(...)`         |
-| Clean Architecture   | Strict separation of concerns      |
-| Error Handling       | `Result<T>` monadic error handling |
-| Testing              | Declarative testing DSL            |
+| Concept              | How HexaFun Supports It                |
+| -------------------- | -------------------------------------- |
+| Use Cases            | `UseCase<I, O>` interface              |
+| Type-Safe Keys       | `UseCaseKey<I, O>` for safe dispatch   |
+| Input Validation     | `ValidationPort<I>` interface          |
+| Validator Chaining   | Multiple `.validate()` calls           |
+| Port Registry        | `port(Class<T>, impl)` for DI          |
+| Functional Pipelines | Chain `.validate(...).handle(...)`     |
+| Clean Architecture   | Strict separation of concerns          |
+| Error Handling       | `Result<T>` monadic error handling     |
+| Testing              | Declarative testing DSL                |
 
 ---
 
@@ -102,17 +108,23 @@ Result<Counter> result = app.invoke("increment", new IncrementInput(initial));
 Easily test your use cases with a fluent API:
 
 ```java
-app.test("createTask")
-   .with(new CreateTaskInput("Study HexaFun", "Important"))
-   .expectOk(task -> assertFalse(task.isCompleted()));
+// Test successful execution
+app.test(INCREMENT)
+   .with(new IncrementInput(Counter.zero()))
+   .expectOk(counter -> assertEquals(1, counter.value()));
+
+// Test validation failure
+app.test(ADD)
+   .with(new AddInput(null, 10))
+   .expectFailure(error -> assertEquals("Counter cannot be null", error));
 ```
 
 ---
 
 ## Packages
 
-* `com.guinetik.hexafun.hexa` – Hexagonal ports (`UseCase`, `InputPort`, etc)
-* `com.guinetik.hexafun.fun` – Functional primitives (`Result`, etc)
-* `com.guinetik.hexafun` – Core application container (`HexaApp`)
-* `com.guinetik.hexafun.testing` – Testing framework
-* `com.guinetik.hexafun.examples` – Example applications
+* `com.guinetik.hexafun.hexa` - Hexagonal ports (`UseCase`, `UseCaseKey`, `ValidationPort`)
+* `com.guinetik.hexafun.fun` - Functional primitives (`Result`)
+* `com.guinetik.hexafun` - Core application container (`HexaApp`, `HexaFun`)
+* `com.guinetik.hexafun.testing` - Testing framework
+* `com.guinetik.hexafun.examples` - Example applications
