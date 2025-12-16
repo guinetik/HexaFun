@@ -1,0 +1,16 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+HexaFun Core,com.guinetik.hexafun.hexa,UseCaseValidationStep,0,116,0,6,0,30,0,10,0,7
+HexaFun Core,com.guinetik.hexafun.hexa,UseCaseBuilder,0,163,1,9,0,37,1,14,0,10
+HexaFun Core,com.guinetik.hexafun.hexa,UseCaseKey,4,44,3,3,0,11,3,6,0,6
+HexaFun Core,com.guinetik.hexafun.hexa,UseCaseHandler,16,0,0,0,5,0,3,0,3,0
+HexaFun Core,com.guinetik.hexafun.hexa,AdapterKey,4,44,3,3,0,11,3,6,0,6
+HexaFun Core,com.guinetik.hexafun.hexa,UseCaseInputStep,0,27,0,0,0,7,0,3,0,3
+HexaFun Core,com.guinetik.hexafun.hexa,InMemoryHexaRepo,115,245,19,27,32,56,22,19,5,13
+HexaFun Core,com.guinetik.hexafun.testing,HexaTest,0,50,0,4,0,12,0,8,0,6
+HexaFun Core,com.guinetik.hexafun.testing,UseCaseTest,86,152,10,14,16,47,9,11,0,8
+HexaFun Core,com.guinetik.hexafun.fun,Result,0,10,0,0,0,2,0,2,0,2
+HexaFun Core,com.guinetik.hexafun.fun,Result.Success,0,35,0,0,0,10,0,8,0,8
+HexaFun Core,com.guinetik.hexafun.fun,Result.Failure,0,34,0,0,0,10,0,8,0,8
+HexaFun Core,com.guinetik.hexafun,HexaAppImpl,0,7,0,0,0,3,0,2,0,2
+HexaFun Core,com.guinetik.hexafun,HexaApp,20,148,1,7,5,36,4,18,3,15
+HexaFun Core,com.guinetik.hexafun,HexaFun,0,4,0,0,0,1,0,1,0,1

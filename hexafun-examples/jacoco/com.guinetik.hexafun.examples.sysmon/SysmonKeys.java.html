@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SysmonKeys.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script>
+<!-- <!-- terminal-javadocs-injected [coverage] -->
+<link rel="stylesheet" href="../../terminal-styles/terminaljavadocs-coverage.min.css">
+<script src="../../terminal-styles/terminaljavadocs.min.js" defer></script>
+</head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">HexaFun Examples</a> &gt; <a href="index.source.html" class="el_package">com.guinetik.hexafun.examples.sysmon</a> &gt; <span class="el_source">SysmonKeys.java</span></div><h1>SysmonKeys.java</h1><pre class="source lang-java linenums">package com.guinetik.hexafun.examples.sysmon;
+
+import com.guinetik.hexafun.hexa.AdapterKey;
+import com.guinetik.hexafun.hexa.UseCaseKey;
+
+/**
+ * Type-safe keys for the system monitor use cases and adapters.
+ *
+ * &lt;p&gt;Centralizing keys here provides:
+ * &lt;ul&gt;
+ *   &lt;li&gt;Single source of truth for all operations&lt;/li&gt;
+ *   &lt;li&gt;Compile-time type safety&lt;/li&gt;
+ *   &lt;li&gt;IDE discoverability&lt;/li&gt;
+ * &lt;/ul&gt;
+ */
+public final class SysmonKeys {
+
+    private SysmonKeys() {}
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  USE CASE KEYS
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Get CPU usage. Input: Void (no input needed), Output: Double (percentage).
+     */
+<span class="nc" id="L27">    public static final UseCaseKey&lt;Void, Double&gt; GET_CPU =</span>
+<span class="nc" id="L28">        UseCaseKey.of(&quot;getCpu&quot;);</span>
+
+    /**
+     * Get memory usage. Input: Void, Output: Double (percentage).
+     */
+<span class="nc" id="L33">    public static final UseCaseKey&lt;Void, Double&gt; GET_MEMORY =</span>
+<span class="nc" id="L34">        UseCaseKey.of(&quot;getMemory&quot;);</span>
+
+    /**
+     * Get disk usage. Input: Void, Output: Double (percentage).
+     */
+<span class="nc" id="L39">    public static final UseCaseKey&lt;Void, Double&gt; GET_DISK =</span>
+<span class="nc" id="L40">        UseCaseKey.of(&quot;getDisk&quot;);</span>
+
+    /**
+     * Get all metrics at once. Input: Void, Output: SystemMetrics.
+     */
+<span class="nc" id="L45">    public static final UseCaseKey&lt;Void, SystemMetrics&gt; GET_ALL =</span>
+<span class="nc" id="L46">        UseCaseKey.of(&quot;getAllMetrics&quot;);</span>
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  ADAPTER KEYS - Transform SystemMetrics to various output formats
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Adapt to TUI format - colorful progress bars with box drawing.
+     */
+<span class="nc" id="L55">    public static final AdapterKey&lt;SystemMetrics, String&gt; TO_TUI =</span>
+<span class="nc" id="L56">        AdapterKey.of(&quot;toTui&quot;);</span>
+
+    /**
+     * Adapt to CLI format - plain text suitable for scripting.
+     */
+<span class="nc" id="L61">    public static final AdapterKey&lt;SystemMetrics, String&gt; TO_CLI =</span>
+<span class="nc" id="L62">        AdapterKey.of(&quot;toCli&quot;);</span>
+
+    /**
+     * Adapt to JSON format - machine-readable output.
+     */
+<span class="nc" id="L67">    public static final AdapterKey&lt;SystemMetrics, String&gt; TO_JSON =</span>
+<span class="nc" id="L68">        AdapterKey.of(&quot;toJson&quot;);</span>
+
+    /**
+     * Adapt to Prometheus format - metrics exposition format.
+     */
+<span class="nc" id="L73">    public static final AdapterKey&lt;SystemMetrics, String&gt; TO_PROMETHEUS =</span>
+<span class="nc" id="L74">        AdapterKey.of(&quot;toPrometheus&quot;);</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

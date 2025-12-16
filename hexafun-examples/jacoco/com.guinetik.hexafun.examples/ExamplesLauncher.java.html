@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ExamplesLauncher.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script>
+<!-- <!-- terminal-javadocs-injected [coverage] -->
+<link rel="stylesheet" href="../../terminal-styles/terminaljavadocs-coverage.min.css">
+<script src="../../terminal-styles/terminaljavadocs.min.js" defer></script>
+</head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">HexaFun Examples</a> &gt; <a href="index.source.html" class="el_package">com.guinetik.hexafun.examples</a> &gt; <span class="el_source">ExamplesLauncher.java</span></div><h1>ExamplesLauncher.java</h1><pre class="source lang-java linenums">package com.guinetik.hexafun.examples;
+
+import com.guinetik.hexafun.examples.counter.CounterApp;
+import com.guinetik.hexafun.examples.sysmon.SysmonTUI;
+import com.guinetik.hexafun.examples.tasks.tui.TasksTUI;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+
+import static com.guinetik.hexafun.examples.tui.Ansi.*;
+
+/**
+ * Interactive launcher for HexaFun examples.
+ *
+ * &lt;p&gt;Run with: {@code mvn exec:java -pl hexafun-examples}&lt;/p&gt;
+ */
+<span class="nc" id="L17">public class ExamplesLauncher {</span>
+
+    private static final String LOGO = &quot;&quot;&quot;
+
+              ╦ ╦┌─┐─┐ ┬┌─┐╔═╗┬ ┬┌┐┌
+              ╠═╣├┤ ┌┴┬┘├─┤╠╣ │ ││││
+              ╩ ╩└─┘┴ └─┴ ┴╚  └─┘┘└┘
+            &quot;&quot;&quot;;
+
+<span class="nc" id="L26">    private static final String MENU = &quot;&quot;&quot;</span>
+
+              %s Examples %s
+
+              %s1%s  Counter    Simple increment/add with validation
+              %s2%s  Tasks      Kanban board TUI (TODO → DOING → DONE)
+              %s3%s  Sysmon     System monitor with multiple output formats
+
+              %sq%s  Quit
+
+<span class="nc" id="L36">            &quot;&quot;&quot;.formatted(</span>
+<span class="nc" id="L37">            color(&quot;─────&quot;, DIM), color(&quot;─────&quot;, DIM),</span>
+<span class="nc" id="L38">            color(&quot;[&quot;, DIM) + color(&quot;1&quot;, CYAN) + color(&quot;]&quot;, DIM), &quot;&quot;,</span>
+<span class="nc" id="L39">            color(&quot;[&quot;, DIM) + color(&quot;2&quot;, CYAN) + color(&quot;]&quot;, DIM), &quot;&quot;,</span>
+<span class="nc" id="L40">            color(&quot;[&quot;, DIM) + color(&quot;3&quot;, CYAN) + color(&quot;]&quot;, DIM), &quot;&quot;,</span>
+<span class="nc" id="L41">            color(&quot;[&quot;, DIM) + color(&quot;q&quot;, YELLOW) + color(&quot;]&quot;, DIM), &quot;&quot;</span>
+    );
+
+    public static void main(String[] args) {
+        // If an argument is passed, launch that example directly
+<span class="nc bnc" id="L46" title="All 2 branches missed.">        if (args.length &gt; 0) {</span>
+<span class="nc" id="L47">            launchByName(args[0]);</span>
+<span class="nc" id="L48">            return;</span>
+        }
+
+        // Interactive menu
+<span class="nc" id="L52">        var reader = new BufferedReader(new InputStreamReader(System.in));</span>
+
+        while (true) {
+<span class="nc" id="L55">            System.out.print(CLEAR_SCREEN + CURSOR_HOME);</span>
+<span class="nc" id="L56">            System.out.println(color(LOGO, CYAN));</span>
+<span class="nc" id="L57">            System.out.println(MENU);</span>
+<span class="nc" id="L58">            System.out.print(color(&quot;  Select example: &quot;, BOLD));</span>
+
+            try {
+<span class="nc" id="L61">                String input = reader.readLine();</span>
+<span class="nc bnc" id="L62" title="All 4 branches missed.">                if (input == null || input.equalsIgnoreCase(&quot;q&quot;)) {</span>
+<span class="nc" id="L63">                    System.out.println(color(&quot;\n  Goodbye!\n&quot;, DIM));</span>
+<span class="nc" id="L64">                    break;</span>
+                }
+
+<span class="nc bnc" id="L67" title="All 4 branches missed.">                switch (input.trim()) {</span>
+                    case &quot;1&quot;, &quot;counter&quot; -&gt; {
+<span class="nc" id="L69">                        System.out.println(color(&quot;\n  Launching Counter...\n&quot;, GREEN));</span>
+<span class="nc" id="L70">                        CounterApp.main(new String[]{});</span>
+<span class="nc" id="L71">                        pause(reader);</span>
+<span class="nc" id="L72">                    }</span>
+                    case &quot;2&quot;, &quot;tasks&quot; -&gt; {
+<span class="nc" id="L74">                        System.out.println(color(&quot;\n  Launching Tasks TUI...\n&quot;, GREEN));</span>
+<span class="nc" id="L75">                        TasksTUI.main(new String[]{});</span>
+<span class="nc" id="L76">                    }</span>
+                    case &quot;3&quot;, &quot;sysmon&quot; -&gt; {
+<span class="nc" id="L78">                        System.out.println(color(&quot;\n  Launching System Monitor...\n&quot;, GREEN));</span>
+<span class="nc" id="L79">                        new SysmonTUI().run();</span>
+<span class="nc" id="L80">                    }</span>
+                    default -&gt; {
+<span class="nc" id="L82">                        System.out.println(color(&quot;\n  Unknown option: &quot; + input, RED));</span>
+<span class="nc" id="L83">                        pause(reader);</span>
+                    }
+                }
+<span class="nc" id="L86">            } catch (Exception e) {</span>
+<span class="nc" id="L87">                System.out.println(color(&quot;\n  Error: &quot; + e.getMessage(), RED));</span>
+<span class="nc" id="L88">            }</span>
+        }
+<span class="nc" id="L90">    }</span>
+
+    private static void launchByName(String name) {
+<span class="nc bnc" id="L93" title="All 4 branches missed.">        switch (name.toLowerCase()) {</span>
+<span class="nc" id="L94">            case &quot;counter&quot;, &quot;1&quot; -&gt; CounterApp.main(new String[]{});</span>
+<span class="nc" id="L95">            case &quot;tasks&quot;, &quot;2&quot; -&gt; TasksTUI.main(new String[]{});</span>
+<span class="nc" id="L96">            case &quot;sysmon&quot;, &quot;3&quot; -&gt; new SysmonTUI().run();</span>
+            default -&gt; {
+<span class="nc" id="L98">                System.out.println(&quot;Unknown example: &quot; + name);</span>
+<span class="nc" id="L99">                System.out.println(&quot;Available: counter, tasks, sysmon&quot;);</span>
+            }
+        }
+<span class="nc" id="L102">    }</span>
+
+    private static void pause(BufferedReader reader) {
+<span class="nc" id="L105">        System.out.print(color(&quot;\n  Press Enter to continue...&quot;, DIM));</span>
+        try {
+<span class="nc" id="L107">            reader.readLine();</span>
+<span class="nc" id="L108">        } catch (Exception ignored) {}</span>
+<span class="nc" id="L109">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

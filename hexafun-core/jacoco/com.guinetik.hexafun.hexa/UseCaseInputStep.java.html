@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UseCaseInputStep.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script>
+<!-- <!-- terminal-javadocs-injected [coverage] -->
+<link rel="stylesheet" href="../../terminal-styles/terminaljavadocs-coverage.min.css">
+<script src="../../terminal-styles/terminaljavadocs.min.js" defer></script>
+</head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">HexaFun Core</a> &gt; <a href="index.source.html" class="el_package">com.guinetik.hexafun.hexa</a> &gt; <span class="el_source">UseCaseInputStep.java</span></div><h1>UseCaseInputStep.java</h1><pre class="source lang-java linenums">package com.guinetik.hexafun.hexa;
+
+/**
+ * Builder step for defining the input handling of a use case.
+ *
+ * &lt;p&gt;From here you can:
+ * &lt;ul&gt;
+ *   &lt;li&gt;{@link #validate(ValidationPort)} - Add validation before handling&lt;/li&gt;
+ *   &lt;li&gt;{@link #handle(UseCase)} - Go directly to handler (no validation)&lt;/li&gt;
+ * &lt;/ul&gt;
+ *
+ * @param &lt;I&gt; The input type of the use case
+ * @param &lt;O&gt; The output type of the use case
+ */
+public class UseCaseInputStep&lt;I, O&gt; {
+
+    private final String name;
+    private final UseCaseBuilder builder;
+
+<span class="fc" id="L20">    public UseCaseInputStep(String name, UseCaseBuilder builder) {</span>
+<span class="fc" id="L21">        this.name = name;</span>
+<span class="fc" id="L22">        this.builder = builder;</span>
+<span class="fc" id="L23">    }</span>
+
+    /**
+     * Define the core logic of the use case without validation.
+     *
+     * @param handler The use case logic that processes the input and produces output
+     * @param &lt;R&gt; The output type of the use case
+     * @return The builder for chaining more use cases
+     */
+    public &lt;R&gt; UseCaseBuilder handle(UseCase&lt;I, R&gt; handler) {
+<span class="fc" id="L33">        builder.stage(name, handler);</span>
+<span class="fc" id="L34">        return builder;</span>
+    }
+
+    /**
+     * Add a validation step before the handler.
+     *
+     * @param validator The validation port that checks the input
+     * @return The validation step for chaining more validators or the handler
+     */
+    public UseCaseValidationStep&lt;I&gt; validate(ValidationPort&lt;I&gt; validator) {
+<span class="fc" id="L44">        return new UseCaseValidationStep&lt;&gt;(name, builder, validator);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

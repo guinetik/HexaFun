@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HexaTerminal.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script>
+<!-- <!-- terminal-javadocs-injected [coverage] -->
+<link rel="stylesheet" href="../../terminal-styles/terminaljavadocs-coverage.min.css">
+<script src="../../terminal-styles/terminaljavadocs.min.js" defer></script>
+</head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">HexaFun Examples</a> &gt; <a href="index.source.html" class="el_package">com.guinetik.hexafun.examples.tui</a> &gt; <span class="el_source">HexaTerminal.java</span></div><h1>HexaTerminal.java</h1><pre class="source lang-java linenums">package com.guinetik.hexafun.examples.tui;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+
+/**
+ * Cross-platform terminal utility functions for TUI applications.
+ *
+ * &lt;p&gt;Provides terminal dimension detection on Unix, macOS, and Windows.&lt;/p&gt;
+ */
+public final class HexaTerminal {
+
+    private HexaTerminal() {}
+
+    /** Default minimum width for TUI applications */
+    public static final int MIN_WIDTH = 60;
+
+    /** Default width if detection fails */
+    public static final int DEFAULT_WIDTH = 120;
+
+    /** Default minimum height */
+    public static final int MIN_HEIGHT = 20;
+
+    /** Default height if detection fails */
+    public static final int DEFAULT_HEIGHT = 40;
+
+    /** Cached OS type */
+<span class="nc" id="L28">    private static final boolean IS_WINDOWS = System.getProperty(&quot;os.name&quot;, &quot;&quot;)</span>
+<span class="nc" id="L29">        .toLowerCase().contains(&quot;win&quot;);</span>
+
+    /**
+     * Detect the current terminal width.
+     *
+     * @return Terminal width in characters
+     */
+    public static int detectWidth() {
+<span class="nc" id="L37">        return detectWidth(MIN_WIDTH, DEFAULT_WIDTH);</span>
+    }
+
+    /**
+     * Detect terminal width with custom bounds.
+     *
+     * @param minWidth Minimum width to return
+     * @param defaultWidth Default if detection fails
+     * @return Terminal width in characters
+     */
+    public static int detectWidth(int minWidth, int defaultWidth) {
+<span class="nc" id="L48">        int[] size = detectSize();</span>
+<span class="nc bnc" id="L49" title="All 4 branches missed.">        if (size != null &amp;&amp; size[1] &gt; 0) {</span>
+<span class="nc" id="L50">            return Math.max(minWidth, size[1]);</span>
+        }
+<span class="nc" id="L52">        return defaultWidth;</span>
+    }
+
+    /**
+     * Detect the current terminal height.
+     *
+     * @return Terminal height in rows
+     */
+    public static int detectHeight() {
+<span class="nc" id="L61">        return detectHeight(MIN_HEIGHT, DEFAULT_HEIGHT);</span>
+    }
+
+    /**
+     * Detect terminal height with custom bounds.
+     *
+     * @param minHeight Minimum height to return
+     * @param defaultHeight Default if detection fails
+     * @return Terminal height in rows
+     */
+    public static int detectHeight(int minHeight, int defaultHeight) {
+<span class="nc" id="L72">        int[] size = detectSize();</span>
+<span class="nc bnc" id="L73" title="All 4 branches missed.">        if (size != null &amp;&amp; size[0] &gt; 0) {</span>
+<span class="nc" id="L74">            return Math.max(minHeight, size[0]);</span>
+        }
+<span class="nc" id="L76">        return defaultHeight;</span>
+    }
+
+    /**
+     * Detect terminal size as [rows, columns].
+     *
+     * @return int[2] with {rows, columns} or null if detection fails
+     */
+    public static int[] detectSize() {
+<span class="nc bnc" id="L85" title="All 2 branches missed.">        return IS_WINDOWS ? detectSizeWindows() : detectSizeUnix();</span>
+    }
+
+    /**
+     * Unix/macOS/WSL size detection using stty.
+     */
+    private static int[] detectSizeUnix() {
+        // Try stty size (works on Linux, macOS, WSL)
+        try {
+<span class="nc" id="L94">            ProcessBuilder pb = new ProcessBuilder(&quot;stty&quot;, &quot;size&quot;);</span>
+<span class="nc" id="L95">            pb.inheritIO();</span>
+<span class="nc" id="L96">            pb.redirectInput(ProcessBuilder.Redirect.INHERIT);</span>
+<span class="nc" id="L97">            pb.redirectOutput(ProcessBuilder.Redirect.PIPE);</span>
+<span class="nc" id="L98">            pb.redirectError(ProcessBuilder.Redirect.PIPE);</span>
+
+<span class="nc" id="L100">            Process p = pb.start();</span>
+<span class="nc" id="L101">            String line = new BufferedReader(</span>
+<span class="nc" id="L102">                new InputStreamReader(p.getInputStream())</span>
+<span class="nc" id="L103">            ).readLine();</span>
+
+<span class="nc" id="L105">            int exitCode = p.waitFor();</span>
+<span class="nc bnc" id="L106" title="All 6 branches missed.">            if (exitCode == 0 &amp;&amp; line != null &amp;&amp; !line.isBlank()) {</span>
+<span class="nc" id="L107">                String[] parts = line.trim().split(&quot;\\s+&quot;);</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">                if (parts.length &gt;= 2) {</span>
+<span class="nc" id="L109">                    int rows = Integer.parseInt(parts[0]);</span>
+<span class="nc" id="L110">                    int cols = Integer.parseInt(parts[1]);</span>
+<span class="nc bnc" id="L111" title="All 4 branches missed.">                    if (rows &gt; 0 &amp;&amp; cols &gt; 0) {</span>
+<span class="nc" id="L112">                        return new int[]{rows, cols};</span>
+                    }
+                }
+            }
+<span class="nc" id="L116">        } catch (Exception ignored) {}</span>
+
+        // Fallback: tput
+        try {
+<span class="nc" id="L120">            int cols = runCommandInt(&quot;tput&quot;, &quot;cols&quot;);</span>
+<span class="nc" id="L121">            int rows = runCommandInt(&quot;tput&quot;, &quot;lines&quot;);</span>
+<span class="nc bnc" id="L122" title="All 4 branches missed.">            if (cols &gt; 0 &amp;&amp; rows &gt; 0) {</span>
+<span class="nc" id="L123">                return new int[]{rows, cols};</span>
+            }
+<span class="nc" id="L125">        } catch (Exception ignored) {}</span>
+
+        // Fallback: environment variables
+<span class="nc" id="L128">        return detectSizeFromEnv();</span>
+    }
+
+    /**
+     * Windows size detection using PowerShell or MODE.
+     */
+    private static int[] detectSizeWindows() {
+        // Try PowerShell (most reliable on modern Windows)
+        try {
+<span class="nc" id="L137">            ProcessBuilder pb = new ProcessBuilder(</span>
+                &quot;powershell&quot;, &quot;-NoProfile&quot;, &quot;-Command&quot;,
+                &quot;[Console]::WindowWidth; [Console]::WindowHeight&quot;
+            );
+<span class="nc" id="L141">            pb.redirectErrorStream(true);</span>
+<span class="nc" id="L142">            Process p = pb.start();</span>
+
+<span class="nc" id="L144">            BufferedReader reader = new BufferedReader(</span>
+<span class="nc" id="L145">                new InputStreamReader(p.getInputStream())</span>
+            );
+<span class="nc" id="L147">            String widthLine = reader.readLine();</span>
+<span class="nc" id="L148">            String heightLine = reader.readLine();</span>
+<span class="nc" id="L149">            p.waitFor();</span>
+
+<span class="nc bnc" id="L151" title="All 4 branches missed.">            if (widthLine != null &amp;&amp; heightLine != null) {</span>
+<span class="nc" id="L152">                int cols = Integer.parseInt(widthLine.trim());</span>
+<span class="nc" id="L153">                int rows = Integer.parseInt(heightLine.trim());</span>
+<span class="nc bnc" id="L154" title="All 4 branches missed.">                if (rows &gt; 0 &amp;&amp; cols &gt; 0) {</span>
+<span class="nc" id="L155">                    return new int[]{rows, cols};</span>
+                }
+            }
+<span class="nc" id="L158">        } catch (Exception ignored) {}</span>
+
+        // Fallback: MODE CON (cmd.exe)
+        try {
+<span class="nc" id="L162">            ProcessBuilder pb = new ProcessBuilder(&quot;cmd&quot;, &quot;/c&quot;, &quot;mode&quot;, &quot;con&quot;);</span>
+<span class="nc" id="L163">            pb.redirectErrorStream(true);</span>
+<span class="nc" id="L164">            Process p = pb.start();</span>
+
+<span class="nc" id="L166">            BufferedReader reader = new BufferedReader(</span>
+<span class="nc" id="L167">                new InputStreamReader(p.getInputStream())</span>
+            );
+
+<span class="nc" id="L170">            int cols = -1, rows = -1;</span>
+            String line;
+<span class="nc bnc" id="L172" title="All 2 branches missed.">            while ((line = reader.readLine()) != null) {</span>
+<span class="nc" id="L173">                line = line.toLowerCase();</span>
+<span class="nc bnc" id="L174" title="All 4 branches missed.">                if (line.contains(&quot;columns&quot;) || line.contains(&quot;cols&quot;)) {</span>
+<span class="nc" id="L175">                    cols = extractNumber(line);</span>
+<span class="nc bnc" id="L176" title="All 2 branches missed.">                } else if (line.contains(&quot;lines&quot;)) {</span>
+<span class="nc" id="L177">                    rows = extractNumber(line);</span>
+                }
+            }
+<span class="nc" id="L180">            p.waitFor();</span>
+
+<span class="nc bnc" id="L182" title="All 4 branches missed.">            if (cols &gt; 0 &amp;&amp; rows &gt; 0) {</span>
+<span class="nc" id="L183">                return new int[]{rows, cols};</span>
+            }
+<span class="nc" id="L185">        } catch (Exception ignored) {}</span>
+
+        // Fallback: environment variables
+<span class="nc" id="L188">        return detectSizeFromEnv();</span>
+    }
+
+    /**
+     * Try to get size from environment variables.
+     */
+    private static int[] detectSizeFromEnv() {
+<span class="nc" id="L195">        String colsEnv = System.getenv(&quot;COLUMNS&quot;);</span>
+<span class="nc" id="L196">        String rowsEnv = System.getenv(&quot;LINES&quot;);</span>
+<span class="nc bnc" id="L197" title="All 4 branches missed.">        if (colsEnv != null &amp;&amp; rowsEnv != null) {</span>
+            try {
+<span class="nc" id="L199">                int cols = Integer.parseInt(colsEnv.trim());</span>
+<span class="nc" id="L200">                int rows = Integer.parseInt(rowsEnv.trim());</span>
+<span class="nc bnc" id="L201" title="All 4 branches missed.">                if (rows &gt; 0 &amp;&amp; cols &gt; 0) {</span>
+<span class="nc" id="L202">                    return new int[]{rows, cols};</span>
+                }
+<span class="nc" id="L204">            } catch (NumberFormatException ignored) {}</span>
+        }
+<span class="nc" id="L206">        return null;</span>
+    }
+
+    /**
+     * Run a command and return the output as an integer.
+     */
+    private static int runCommandInt(String... cmd) throws Exception {
+<span class="nc" id="L213">        ProcessBuilder pb = new ProcessBuilder(cmd);</span>
+<span class="nc" id="L214">        pb.redirectInput(ProcessBuilder.Redirect.INHERIT);</span>
+<span class="nc" id="L215">        pb.redirectErrorStream(true);</span>
+<span class="nc" id="L216">        Process p = pb.start();</span>
+<span class="nc" id="L217">        String line = new BufferedReader(</span>
+<span class="nc" id="L218">            new InputStreamReader(p.getInputStream())</span>
+<span class="nc" id="L219">        ).readLine();</span>
+<span class="nc" id="L220">        p.waitFor();</span>
+<span class="nc bnc" id="L221" title="All 2 branches missed.">        return line != null ? Integer.parseInt(line.trim()) : -1;</span>
+    }
+
+    /**
+     * Extract a number from a string like &quot;Columns: 120&quot; or &quot;Lines: 30&quot;.
+     */
+    private static int extractNumber(String line) {
+<span class="nc" id="L228">        StringBuilder sb = new StringBuilder();</span>
+<span class="nc bnc" id="L229" title="All 2 branches missed.">        for (char c : line.toCharArray()) {</span>
+<span class="nc bnc" id="L230" title="All 2 branches missed.">            if (Character.isDigit(c)) {</span>
+<span class="nc" id="L231">                sb.append(c);</span>
+<span class="nc bnc" id="L232" title="All 2 branches missed.">            } else if (sb.length() &gt; 0) {</span>
+<span class="nc" id="L233">                break; // Stop at first non-digit after finding digits</span>
+            }
+        }
+        try {
+<span class="nc bnc" id="L237" title="All 2 branches missed.">            return sb.length() &gt; 0 ? Integer.parseInt(sb.toString()) : -1;</span>
+<span class="nc" id="L238">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L239">            return -1;</span>
+        }
+    }
+
+    /**
+     * Get terminal size as &quot;ROWSxCOLS&quot; string.
+     *
+     * @return Size string like &quot;24x80&quot; or &quot;unknown&quot;
+     */
+    public static String getSizeString() {
+<span class="nc" id="L249">        int[] size = detectSize();</span>
+<span class="nc bnc" id="L250" title="All 2 branches missed.">        if (size != null) {</span>
+<span class="nc" id="L251">            return size[0] + &quot;x&quot; + size[1];</span>
+        }
+<span class="nc" id="L253">        return &quot;unknown&quot;;</span>
+    }
+
+    /**
+     * Check if running on Windows.
+     */
+    public static boolean isWindows() {
+<span class="nc" id="L260">        return IS_WINDOWS;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

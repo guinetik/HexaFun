@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CounterValidators.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script>
+<!-- <!-- terminal-javadocs-injected [coverage] -->
+<link rel="stylesheet" href="../../terminal-styles/terminaljavadocs-coverage.min.css">
+<script src="../../terminal-styles/terminaljavadocs.min.js" defer></script>
+</head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">HexaFun Examples</a> &gt; <a href="index.source.html" class="el_package">com.guinetik.hexafun.examples.counter</a> &gt; <span class="el_source">CounterValidators.java</span></div><h1>CounterValidators.java</h1><pre class="source lang-java linenums">package com.guinetik.hexafun.examples.counter;
+
+import com.guinetik.hexafun.fun.Result;
+import com.guinetik.hexafun.examples.counter.CounterInputs.*;
+
+/**
+ * Validation functions for counter operations.
+ *
+ * &lt;p&gt;Each validator is a pure function: Input -&gt; Result&amp;lt;Input&amp;gt;
+ * Can be composed/chained in the DSL.
+ */
+public final class CounterValidators {
+
+    private CounterValidators() {}
+
+    /**
+     * Validates that the counter in IncrementInput is not null.
+     */
+    public static Result&lt;IncrementInput&gt; validateIncrement(IncrementInput input) {
+<span class="pc bpc" id="L20" title="1 of 2 branches missed.">        if (input == null) {</span>
+<span class="nc" id="L21">            return Result.fail(&quot;Input cannot be null&quot;);</span>
+        }
+<span class="fc bfc" id="L23" title="All 2 branches covered.">        if (input.counter() == null) {</span>
+<span class="fc" id="L24">            return Result.fail(&quot;Counter cannot be null&quot;);</span>
+        }
+<span class="fc" id="L26">        return Result.ok(input);</span>
+    }
+
+    /**
+     * Validates that the counter in DecrementInput is not null.
+     */
+    public static Result&lt;DecrementInput&gt; validateDecrement(DecrementInput input) {
+<span class="pc bpc" id="L33" title="1 of 2 branches missed.">        if (input == null) {</span>
+<span class="nc" id="L34">            return Result.fail(&quot;Input cannot be null&quot;);</span>
+        }
+<span class="fc bfc" id="L36" title="All 2 branches covered.">        if (input.counter() == null) {</span>
+<span class="fc" id="L37">            return Result.fail(&quot;Counter cannot be null&quot;);</span>
+        }
+<span class="fc" id="L39">        return Result.ok(input);</span>
+    }
+
+    /**
+     * Validates that the counter in AddInput is not null.
+     */
+    public static Result&lt;AddInput&gt; validateAddCounter(AddInput input) {
+<span class="pc bpc" id="L46" title="1 of 2 branches missed.">        if (input == null) {</span>
+<span class="nc" id="L47">            return Result.fail(&quot;Input cannot be null&quot;);</span>
+        }
+<span class="fc bfc" id="L49" title="All 2 branches covered.">        if (input.counter() == null) {</span>
+<span class="fc" id="L50">            return Result.fail(&quot;Counter cannot be null&quot;);</span>
+        }
+<span class="fc" id="L52">        return Result.ok(input);</span>
+    }
+
+    /**
+     * Validates that the amount in AddInput is within bounds [-100, 100].
+     */
+    public static Result&lt;AddInput&gt; validateAddAmount(AddInput input) {
+<span class="fc bfc" id="L59" title="All 4 branches covered.">        if (input.amount() &lt; -100 || input.amount() &gt; 100) {</span>
+<span class="fc" id="L60">            return Result.fail(&quot;Amount must be between -100 and 100&quot;);</span>
+        }
+<span class="fc" id="L62">        return Result.ok(input);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,421 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Widgets.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script>
+<!-- <!-- terminal-javadocs-injected [coverage] -->
+<link rel="stylesheet" href="../../terminal-styles/terminaljavadocs-coverage.min.css">
+<script src="../../terminal-styles/terminaljavadocs.min.js" defer></script>
+</head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">HexaFun Examples</a> &gt; <a href="index.source.html" class="el_package">com.guinetik.hexafun.examples.tui</a> &gt; <span class="el_source">Widgets.java</span></div><h1>Widgets.java</h1><pre class="source lang-java linenums">package com.guinetik.hexafun.examples.tui;
+
+import static com.guinetik.hexafun.examples.tui.Ansi.*;
+
+import java.util.List;
+import java.util.function.Function;
+
+/**
+ * Reusable TUI widget builders.
+ *
+ * &lt;p&gt;All methods return Strings (pure functions), keeping side effects
+ * at the edges. Compose these with {@link View} for full screens.
+ *
+ * &lt;p&gt;Example:
+ * &lt;pre class=&quot;language-java&quot;&gt;{@code
+ * String header = Widgets.header(&quot;My App&quot;, 80, CYAN);
+ * String progress = Widgets.progressBar(75, 60, GREEN);
+ * String box = Widgets.box(&quot;Content here&quot;, 40, YELLOW);
+ * }&lt;/pre&gt;
+ */
+public final class Widgets {
+
+    private Widgets() {}
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  HEADERS &amp; TITLES
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Render a boxed header with title and optional subtitle.
+     *
+     * @param title Main title text
+     * @param subtitle Optional subtitle (can be null)
+     * @param width Total width including borders
+     * @param borderColor ANSI color for the border
+     * @return Rendered header string
+     */
+    public static String header(
+        String title,
+        String subtitle,
+        int width,
+        String borderColor
+    ) {
+<span class="nc" id="L44">        int innerWidth = width - 4;</span>
+<span class="nc" id="L45">        StringBuilder sb = new StringBuilder();</span>
+
+<span class="nc" id="L47">        sb.append(&quot;\n&quot;);</span>
+<span class="nc" id="L48">        sb</span>
+<span class="nc" id="L49">            .append(</span>
+<span class="nc" id="L50">                color(</span>
+                    &quot;  &quot; +
+                        DBOX_TOP_LEFT +
+<span class="nc" id="L53">                        repeat(DBOX_HORIZONTAL, innerWidth) +</span>
+                        DBOX_TOP_RIGHT,
+                    borderColor
+                )
+            )
+<span class="nc" id="L58">            .append(&quot;\n&quot;);</span>
+<span class="nc" id="L59">        sb</span>
+<span class="nc" id="L60">            .append(color(&quot;  &quot; + DBOX_VERTICAL, borderColor))</span>
+<span class="nc" id="L61">            .append(color(center(title, innerWidth), BOLD, BRIGHT_WHITE))</span>
+<span class="nc" id="L62">            .append(color(DBOX_VERTICAL, borderColor))</span>
+<span class="nc" id="L63">            .append(&quot;\n&quot;);</span>
+
+<span class="nc bnc" id="L65" title="All 4 branches missed.">        if (subtitle != null &amp;&amp; !subtitle.isEmpty()) {</span>
+<span class="nc" id="L66">            sb</span>
+<span class="nc" id="L67">                .append(color(&quot;  &quot; + DBOX_VERTICAL, borderColor))</span>
+<span class="nc" id="L68">                .append(color(center(subtitle, innerWidth), DIM))</span>
+<span class="nc" id="L69">                .append(color(DBOX_VERTICAL, borderColor))</span>
+<span class="nc" id="L70">                .append(&quot;\n&quot;);</span>
+        }
+
+<span class="nc" id="L73">        sb</span>
+<span class="nc" id="L74">            .append(</span>
+<span class="nc" id="L75">                color(</span>
+                    &quot;  &quot; +
+                        DBOX_BOTTOM_LEFT +
+<span class="nc" id="L78">                        repeat(DBOX_HORIZONTAL, innerWidth) +</span>
+                        DBOX_BOTTOM_RIGHT,
+                    borderColor
+                )
+            )
+<span class="nc" id="L83">            .append(&quot;\n&quot;);</span>
+<span class="nc" id="L84">        sb.append(&quot;\n&quot;);</span>
+
+<span class="nc" id="L86">        return sb.toString();</span>
+    }
+
+    /**
+     * Simple header without subtitle.
+     */
+    public static String header(String title, int width, String borderColor) {
+<span class="nc" id="L93">        return header(title, null, width, borderColor);</span>
+    }
+
+    /**
+     * Section divider with label.
+     *
+     * @param label Section label
+     * @param width Total width
+     * @return Rendered divider
+     */
+    public static String section(String label, int width) {
+<span class="nc" id="L104">        int labelWidth = label.length() + 2;</span>
+<span class="nc" id="L105">        int lineWidth = width - 4 - labelWidth;</span>
+<span class="nc" id="L106">        return (</span>
+<span class="nc" id="L107">            color(</span>
+                &quot;  &quot; +
+                    BOX_HORIZONTAL +
+                    &quot; &quot; +
+                    label +
+                    &quot; &quot; +
+<span class="nc" id="L113">                    repeat(BOX_HORIZONTAL, lineWidth),</span>
+                DIM
+            ) +
+            &quot;\n\n&quot;
+        );
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  PROGRESS &amp; STATS
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Render a progress bar.
+     *
+     * @param percent Completion percentage (0-100)
+     * @param width Bar width in characters
+     * @param fillColor Color for filled portion
+     * @return Rendered progress bar
+     */
+    public static String progressBar(int percent, int width, String fillColor) {
+<span class="nc" id="L133">        int clamped = Math.max(0, Math.min(100, percent));</span>
+<span class="nc" id="L134">        int filled = (width * clamped) / 100;</span>
+<span class="nc" id="L135">        int empty = width - filled;</span>
+
+<span class="nc" id="L137">        return (</span>
+            &quot;  &quot; +
+<span class="nc" id="L139">            color(repeat(BLOCK_FULL, filled), fillColor) +</span>
+<span class="nc" id="L140">            color(repeat(BLOCK_LIGHT, empty), BRIGHT_BLACK) +</span>
+<span class="nc" id="L141">            color(String.format(&quot; %3d%%&quot;, clamped), DIM) +</span>
+            &quot;\n&quot;
+        );
+    }
+
+    /**
+     * Powerline-style segment for stats bars.
+     *
+     * @param text Segment text
+     * @param bgColor Background color
+     * @param fgColor Foreground color
+     * @return Rendered segment (without separator)
+     */
+    public static String segment(
+        String text,
+        int width,
+        String bgColor,
+        String fgColor
+    ) {
+<span class="nc" id="L160">        return color(center(text, width), bgColor, fgColor, BOLD);</span>
+    }
+
+    /**
+     * Powerline separator arrow.
+     *
+     * @param fromColor Color of previous segment
+     * @param toColor Color of next segment (or null for end)
+     * @return Rendered separator
+     */
+    public static String separator(String fromColor, String toColor) {
+<span class="nc bnc" id="L171" title="All 2 branches missed.">        if (toColor == null) {</span>
+<span class="nc" id="L172">            return color(PL_LEFT, fromColor);</span>
+        }
+<span class="nc" id="L174">        return color(</span>
+            PL_LEFT,
+            fromColor,
+<span class="nc" id="L177">            toColor.replace(&quot;\u001B[3&quot;, &quot;\u001B[4&quot;)</span>
+        ); // Convert fg to bg
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  BOXES &amp; CONTAINERS
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Render content in a single-line box.
+     *
+     * @param content Content to box
+     * @param width Box width
+     * @param borderColor Border color
+     * @return Boxed content
+     */
+    public static String box(String content, int width, String borderColor) {
+<span class="nc" id="L194">        int innerWidth = width - 2;</span>
+<span class="nc" id="L195">        StringBuilder sb = new StringBuilder();</span>
+
+<span class="nc" id="L197">        sb</span>
+<span class="nc" id="L198">            .append(</span>
+<span class="nc" id="L199">                color(</span>
+                    BOX_TOP_LEFT +
+<span class="nc" id="L201">                        repeat(BOX_HORIZONTAL, innerWidth) +</span>
+                        BOX_TOP_RIGHT,
+                    borderColor
+                )
+            )
+<span class="nc" id="L206">            .append(&quot;\n&quot;);</span>
+<span class="nc" id="L207">        sb</span>
+<span class="nc" id="L208">            .append(color(BOX_VERTICAL, borderColor))</span>
+<span class="nc" id="L209">            .append(center(content, innerWidth))</span>
+<span class="nc" id="L210">            .append(color(BOX_VERTICAL, borderColor))</span>
+<span class="nc" id="L211">            .append(&quot;\n&quot;);</span>
+<span class="nc" id="L212">        sb</span>
+<span class="nc" id="L213">            .append(</span>
+<span class="nc" id="L214">                color(</span>
+                    BOX_BOTTOM_LEFT +
+<span class="nc" id="L216">                        repeat(BOX_HORIZONTAL, innerWidth) +</span>
+                        BOX_BOTTOM_RIGHT,
+                    borderColor
+                )
+            )
+<span class="nc" id="L221">            .append(&quot;\n&quot;);</span>
+
+<span class="nc" id="L223">        return sb.toString();</span>
+    }
+
+    /**
+     * Render multiple lines in a box.
+     *
+     * @param lines Content lines
+     * @param width Box width
+     * @param borderColor Border color
+     * @return Boxed content
+     */
+    public static String box(
+        List&lt;String&gt; lines,
+        int width,
+        String borderColor
+    ) {
+<span class="nc" id="L239">        int innerWidth = width - 2;</span>
+<span class="nc" id="L240">        StringBuilder sb = new StringBuilder();</span>
+
+<span class="nc" id="L242">        sb</span>
+<span class="nc" id="L243">            .append(</span>
+<span class="nc" id="L244">                color(</span>
+                    BOX_TOP_LEFT +
+<span class="nc" id="L246">                        repeat(BOX_HORIZONTAL, innerWidth) +</span>
+                        BOX_TOP_RIGHT,
+                    borderColor
+                )
+            )
+<span class="nc" id="L251">            .append(&quot;\n&quot;);</span>
+<span class="nc bnc" id="L252" title="All 2 branches missed.">        for (String line : lines) {</span>
+<span class="nc bnc" id="L253" title="All 2 branches missed.">            String padded = line.length() &gt; innerWidth</span>
+<span class="nc" id="L254">                ? line.substring(0, innerWidth)</span>
+<span class="nc" id="L255">                : pad(line, innerWidth);</span>
+<span class="nc" id="L256">            sb</span>
+<span class="nc" id="L257">                .append(color(BOX_VERTICAL, borderColor))</span>
+<span class="nc" id="L258">                .append(padded)</span>
+<span class="nc" id="L259">                .append(color(BOX_VERTICAL, borderColor))</span>
+<span class="nc" id="L260">                .append(&quot;\n&quot;);</span>
+<span class="nc" id="L261">        }</span>
+<span class="nc" id="L262">        sb</span>
+<span class="nc" id="L263">            .append(</span>
+<span class="nc" id="L264">                color(</span>
+                    BOX_BOTTOM_LEFT +
+<span class="nc" id="L266">                        repeat(BOX_HORIZONTAL, innerWidth) +</span>
+                        BOX_BOTTOM_RIGHT,
+                    borderColor
+                )
+            )
+<span class="nc" id="L271">            .append(&quot;\n&quot;);</span>
+
+<span class="nc" id="L273">        return sb.toString();</span>
+    }
+
+    /**
+     * Horizontal rule/divider.
+     *
+     * @param width Total width
+     * @return Rendered divider
+     */
+    public static String hr(int width) {
+<span class="nc" id="L283">        return color(&quot;  &quot; + repeat(BOX_HORIZONTAL, width - 4), DIM) + &quot;\n&quot;;</span>
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  LISTS &amp; ITEMS
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Render a numbered list item.
+     *
+     * @param index Item number
+     * @param icon Icon to display
+     * @param iconColor Icon color
+     * @param text Item text
+     * @param textColor Text color
+     * @return Rendered list item
+     */
+    public static String listItem(
+        int index,
+        String icon,
+        String iconColor,
+        String text,
+        String textColor
+    ) {
+<span class="nc" id="L307">        return (</span>
+            &quot;    &quot; +
+<span class="nc" id="L309">            color(index + &quot; &quot;, BRIGHT_BLACK) +</span>
+<span class="nc" id="L310">            color(icon + &quot; &quot;, iconColor) +</span>
+<span class="nc" id="L311">            color(text, textColor) +</span>
+            &quot;\n&quot;
+        );
+    }
+
+    /**
+     * Render a simple bullet item.
+     */
+    public static String bulletItem(String text) {
+<span class="nc" id="L320">        return &quot;    &quot; + color(BULLET + &quot; &quot;, DIM) + text + &quot;\n&quot;;</span>
+    }
+
+    /**
+     * Render a numbered selection item (for menus).
+     */
+    public static String selectionItem(int index, String text) {
+<span class="nc" id="L327">        return color(&quot;    [&quot; + index + &quot;] &quot;, BRIGHT_BLACK) + text + &quot;\n&quot;;</span>
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  MENUS &amp; PROMPTS
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Menu item with key shortcut.
+     *
+     * @param key Shortcut key
+     * @param icon Icon
+     * @param label Menu label
+     * @param keyColor Color for the key
+     * @return Rendered menu item
+     */
+    public static String menuItem(
+        String key,
+        String icon,
+        String label,
+        String keyColor
+    ) {
+<span class="nc" id="L349">        return (</span>
+<span class="nc" id="L350">            color(&quot;[&quot; + key + &quot;]&quot;, keyColor, BOLD) +</span>
+<span class="nc" id="L351">            color(&quot; &quot; + icon + &quot; &quot; + label + &quot;  &quot;, keyColor)</span>
+        );
+    }
+
+    /**
+     * Input prompt.
+     *
+     * @param symbol Prompt symbol
+     * @param promptColor Prompt color
+     * @return Rendered prompt
+     */
+    public static String prompt(String symbol, String promptColor) {
+<span class="nc" id="L363">        return color(&quot;  &quot; + symbol + &quot; &quot;, promptColor, BOLD);</span>
+    }
+
+    /**
+     * Default prompt with &quot;&gt;&quot;.
+     */
+    public static String prompt(String promptColor) {
+<span class="nc" id="L370">        return prompt(&quot;&gt;&quot;, promptColor);</span>
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  STATUS &amp; MESSAGES
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Status message with arrow indicator.
+     *
+     * @param message Status message
+     * @param messageColor Message color
+     * @return Rendered status
+     */
+    public static String status(String message, String messageColor) {
+<span class="nc bnc" id="L385" title="All 4 branches missed.">        if (message == null || message.isEmpty()) return &quot;\n&quot;;</span>
+<span class="nc" id="L386">        return color(&quot;  &quot; + ARROW_RIGHT + &quot; &quot; + message, messageColor) + &quot;\n\n&quot;;</span>
+    }
+
+    /**
+     * Success message.
+     */
+    public static String success(String message) {
+<span class="nc" id="L393">        return status(CHECK + &quot; &quot; + message, GREEN);</span>
+    }
+
+    /**
+     * Error message.
+     */
+    public static String error(String message) {
+<span class="nc" id="L400">        return status(CROSS + &quot; &quot; + message, RED);</span>
+    }
+
+    /**
+     * Warning message.
+     */
+    public static String warning(String message) {
+<span class="nc" id="L407">        return status(BULLET + &quot; &quot; + message, YELLOW);</span>
+    }
+
+    /**
+     * Info message.
+     */
+    public static String info(String message) {
+<span class="nc" id="L414">        return status(ICON_INFO + &quot; &quot; + message, BLUE);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

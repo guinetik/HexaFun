@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MetricsProvider.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script>
+<!-- <!-- terminal-javadocs-injected [coverage] -->
+<link rel="stylesheet" href="../../terminal-styles/terminaljavadocs-coverage.min.css">
+<script src="../../terminal-styles/terminaljavadocs.min.js" defer></script>
+</head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">HexaFun Examples</a> &gt; <a href="index.source.html" class="el_package">com.guinetik.hexafun.examples.sysmon</a> &gt; <span class="el_source">MetricsProvider.java</span></div><h1>MetricsProvider.java</h1><pre class="source lang-java linenums">package com.guinetik.hexafun.examples.sysmon;
+
+/**
+ * Output port for retrieving system metrics.
+ *
+ * &lt;p&gt;This interface abstracts the source of system metrics, allowing
+ * the domain to remain independent of how metrics are obtained.
+ * Implementations can read from the real OS, return mock data, or
+ * fetch from remote monitoring systems.&lt;/p&gt;
+ *
+ * &lt;h2&gt;Hexagonal Architecture Role&lt;/h2&gt;
+ * &lt;p&gt;This is a &lt;strong&gt;driven port&lt;/strong&gt; (output port) - the application
+ * core calls out to infrastructure through this interface.&lt;/p&gt;
+ */
+public interface MetricsProvider {
+
+    /**
+     * Get current CPU usage percentage.
+     *
+     * @return CPU usage as percentage (0-100)
+     */
+    double getCpuUsage();
+
+    /**
+     * Get current memory usage percentage.
+     *
+     * @return Memory usage as percentage (0-100)
+     */
+    double getMemoryUsage();
+
+    /**
+     * Get current disk usage percentage.
+     *
+     * @return Disk usage as percentage (0-100)
+     */
+    double getDiskUsage();
+
+    /**
+     * Get all system metrics at once.
+     *
+     * &lt;p&gt;Default implementation calls individual methods, but implementations
+     * may override for efficiency (e.g., single OS call).&lt;/p&gt;
+     *
+     * @return SystemMetrics containing all current values
+     */
+    default SystemMetrics getAllMetrics() {
+<span class="nc" id="L47">        return new SystemMetrics(getCpuUsage(), getMemoryUsage(), getDiskUsage());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

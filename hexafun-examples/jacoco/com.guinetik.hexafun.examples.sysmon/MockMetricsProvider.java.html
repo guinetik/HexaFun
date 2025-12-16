@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MockMetricsProvider.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script>
+<!-- <!-- terminal-javadocs-injected [coverage] -->
+<link rel="stylesheet" href="../../terminal-styles/terminaljavadocs-coverage.min.css">
+<script src="../../terminal-styles/terminaljavadocs.min.js" defer></script>
+</head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">HexaFun Examples</a> &gt; <a href="index.source.html" class="el_package">com.guinetik.hexafun.examples.sysmon</a> &gt; <span class="el_source">MockMetricsProvider.java</span></div><h1>MockMetricsProvider.java</h1><pre class="source lang-java linenums">package com.guinetik.hexafun.examples.sysmon;
+
+import java.util.Random;
+
+/**
+ * Mock implementation of MetricsProvider for testing and demos.
+ *
+ * &lt;p&gt;Returns configurable or random values. Useful for:
+ * &lt;ul&gt;
+ *   &lt;li&gt;Unit testing handlers without OS dependencies&lt;/li&gt;
+ *   &lt;li&gt;Demos with controlled/interesting values&lt;/li&gt;
+ *   &lt;li&gt;Simulating warning conditions&lt;/li&gt;
+ * &lt;/ul&gt;
+ */
+public class MockMetricsProvider implements MetricsProvider {
+
+    private final double cpu;
+    private final double memory;
+    private final double disk;
+
+    /**
+     * Create with fixed values.
+     */
+<span class="nc" id="L24">    public MockMetricsProvider(double cpu, double memory, double disk) {</span>
+<span class="nc" id="L25">        this.cpu = cpu;</span>
+<span class="nc" id="L26">        this.memory = memory;</span>
+<span class="nc" id="L27">        this.disk = disk;</span>
+<span class="nc" id="L28">    }</span>
+
+    /**
+     * Create with random values within realistic ranges.
+     */
+    public static MockMetricsProvider random() {
+<span class="nc" id="L34">        Random r = new Random();</span>
+<span class="nc" id="L35">        return new MockMetricsProvider(</span>
+<span class="nc" id="L36">            20 + r.nextDouble() * 60,  // CPU: 20-80%</span>
+<span class="nc" id="L37">            30 + r.nextDouble() * 50,  // Memory: 30-80%</span>
+<span class="nc" id="L38">            40 + r.nextDouble() * 55   // Disk: 40-95%</span>
+        );
+    }
+
+    /**
+     * Create with values designed to show warnings.
+     */
+    public static MockMetricsProvider withWarnings() {
+<span class="nc" id="L46">        return new MockMetricsProvider(67.0, 52.0, 91.0);</span>
+    }
+
+    /**
+     * Create with all healthy values.
+     */
+    public static MockMetricsProvider healthy() {
+<span class="nc" id="L53">        return new MockMetricsProvider(35.0, 48.0, 62.0);</span>
+    }
+
+    @Override
+    public double getCpuUsage() {
+<span class="nc" id="L58">        return cpu;</span>
+    }
+
+    @Override
+    public double getMemoryUsage() {
+<span class="nc" id="L63">        return memory;</span>
+    }
+
+    @Override
+    public double getDiskUsage() {
+<span class="nc" id="L68">        return disk;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

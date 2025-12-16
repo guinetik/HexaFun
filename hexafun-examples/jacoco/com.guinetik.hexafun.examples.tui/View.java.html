@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>View.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script>
+<!-- <!-- terminal-javadocs-injected [coverage] -->
+<link rel="stylesheet" href="../../terminal-styles/terminaljavadocs-coverage.min.css">
+<script src="../../terminal-styles/terminaljavadocs.min.js" defer></script>
+</head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">HexaFun Examples</a> &gt; <a href="index.source.html" class="el_package">com.guinetik.hexafun.examples.tui</a> &gt; <span class="el_source">View.java</span></div><h1>View.java</h1><pre class="source lang-java linenums">package com.guinetik.hexafun.examples.tui;
+
+import java.util.function.Function;
+import java.util.function.Predicate;
+
+/**
+ * A View is a pure function from State to String.
+ *
+ * &lt;p&gt;Views are the building blocks of functional TUIs. They:
+ * &lt;ul&gt;
+ *   &lt;li&gt;Take immutable state as input&lt;/li&gt;
+ *   &lt;li&gt;Return a String representation&lt;/li&gt;
+ *   &lt;li&gt;Have no side effects&lt;/li&gt;
+ *   &lt;li&gt;Compose via {@link #andThen(View)}&lt;/li&gt;
+ * &lt;/ul&gt;
+ *
+ * &lt;p&gt;Example usage:
+ * &lt;pre class=&quot;language-java&quot;&gt;{@code
+ * View&lt;AppState&gt; header = state -&gt; &quot;=== &quot; + state.title() + &quot; ===\n&quot;;
+ * View&lt;AppState&gt; content = state -&gt; state.items().stream()...;
+ * View&lt;AppState&gt; footer = state -&gt; &quot;\nTotal: &quot; + state.count();
+ *
+ * // Compose views
+ * View&lt;AppState&gt; screen = header
+ *     .andThen(content)
+ *     .andThen(footer);
+ *
+ * // Render (single side effect)
+ * System.out.print(screen.apply(state));
+ * }&lt;/pre&gt;
+ *
+ * @param &lt;S&gt; The state type this view renders
+ */
+@FunctionalInterface
+public interface View&lt;S&gt; extends Function&lt;S, String&gt; {
+    /**
+     * Compose this view with another, concatenating their outputs.
+     *
+     * @param next The view to append after this one
+     * @return A new view that renders both in sequence
+     */
+    default View&lt;S&gt; andThen(View&lt;S&gt; next) {
+<span class="nc" id="L43">        return state -&gt; this.apply(state) + next.apply(state);</span>
+    }
+
+    /**
+     * Compose with a separator between views.
+     *
+     * @param separator String to insert between views
+     * @param next The view to append
+     * @return A new composed view
+     */
+    default View&lt;S&gt; andThen(String separator, View&lt;S&gt; next) {
+<span class="nc" id="L54">        return state -&gt; this.apply(state) + separator + next.apply(state);</span>
+    }
+
+    /**
+     * Conditional view - renders one of two views based on predicate.
+     *
+     * @param condition Predicate to test against state
+     * @param ifTrue View to render if condition is true
+     * @param ifFalse View to render if condition is false
+     * @return A new conditional view
+     */
+    static &lt;S&gt; View&lt;S&gt; when(
+        Predicate&lt;S&gt; condition,
+        View&lt;S&gt; ifTrue,
+        View&lt;S&gt; ifFalse
+    ) {
+<span class="nc" id="L70">        return state -&gt;</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">            condition.test(state) ? ifTrue.apply(state) : ifFalse.apply(state);</span>
+    }
+
+    /**
+     * Conditional view with empty fallback.
+     *
+     * @param condition Predicate to test against state
+     * @param view View to render if condition is true
+     * @return A new conditional view (empty if false)
+     */
+    static &lt;S&gt; View&lt;S&gt; when(Predicate&lt;S&gt; condition, View&lt;S&gt; view) {
+<span class="nc" id="L82">        return when(condition, view, empty());</span>
+    }
+
+    /**
+     * Empty view - renders nothing.
+     *
+     * @return A view that returns empty string
+     */
+    static &lt;S&gt; View&lt;S&gt; empty() {
+<span class="nc" id="L91">        return state -&gt; &quot;&quot;;</span>
+    }
+
+    /**
+     * Literal view - always renders the same string.
+     *
+     * @param text The literal string to render
+     * @return A view that ignores state and returns the literal
+     */
+    static &lt;S&gt; View&lt;S&gt; of(String text) {
+<span class="nc" id="L101">        return state -&gt; text;</span>
+    }
+
+    /**
+     * Newline view - renders a blank line.
+     *
+     * @return A view that returns a newline
+     */
+    static &lt;S&gt; View&lt;S&gt; newline() {
+<span class="nc" id="L110">        return state -&gt; &quot;\n&quot;;</span>
+    }
+
+    /**
+     * Create a view from a function.
+     *
+     * @param fn Function to convert to a View
+     * @return The function as a View
+     */
+    static &lt;S&gt; View&lt;S&gt; from(Function&lt;S, String&gt; fn) {
+<span class="nc" id="L120">        return fn::apply;</span>
+    }
+
+    /**
+     * Combine multiple views into one.
+     *
+     * @param views Views to combine
+     * @return A single view that renders all in sequence
+     */
+    @SafeVarargs
+    static &lt;S&gt; View&lt;S&gt; compose(View&lt;S&gt;... views) {
+<span class="nc" id="L131">        return state -&gt; {</span>
+<span class="nc" id="L132">            StringBuilder sb = new StringBuilder();</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">            for (View&lt;S&gt; view : views) {</span>
+<span class="nc" id="L134">                sb.append(view.apply(state));</span>
+            }
+<span class="nc" id="L136">            return sb.toString();</span>
+        };
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

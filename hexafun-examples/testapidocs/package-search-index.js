@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"com.guinetik.hexafun.examples.counter"},{"l":"com.guinetik.hexafun.examples.tasks"}];updateSearchResults();

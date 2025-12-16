@@ -1,0 +1,1 @@
+typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"com.guinetik.hexafun.examples.counter","l":"CounterAppTest"},{"p":"com.guinetik.hexafun.examples.tasks","l":"TaskAppTest"}];updateSearchResults();

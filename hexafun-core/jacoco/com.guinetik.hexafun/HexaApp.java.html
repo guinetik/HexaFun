@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HexaApp.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script>
+<!-- <!-- terminal-javadocs-injected [coverage] -->
+<link rel="stylesheet" href="../../terminal-styles/terminaljavadocs-coverage.min.css">
+<script src="../../terminal-styles/terminaljavadocs.min.js" defer></script>
+</head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">HexaFun Core</a> &gt; <a href="index.source.html" class="el_package">com.guinetik.hexafun</a> &gt; <span class="el_source">HexaApp.java</span></div><h1>HexaApp.java</h1><pre class="source lang-java linenums">package com.guinetik.hexafun;
+
+import com.guinetik.hexafun.hexa.AdapterKey;
+import com.guinetik.hexafun.hexa.UseCase;
+import com.guinetik.hexafun.hexa.UseCaseKey;
+import com.guinetik.hexafun.testing.HexaTest;
+import com.guinetik.hexafun.testing.UseCaseTest;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+
+/**
+ * Core container for a Hexagonal Architecture application.
+ * Manages use cases, ports, and adapters.
+ */
+<span class="fc" id="L17">public abstract class HexaApp {</span>
+
+<span class="fc" id="L19">    protected final Map&lt;String, UseCase&lt;?, ?&gt;&gt; useCases = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L20">    protected final Map&lt;Class&lt;?&gt;, Object&gt; ports = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L21">    protected final Map&lt;String, Function&lt;?, ?&gt;&gt; adapters = new HashMap&lt;&gt;();</span>
+
+    /**
+     * Create a new empty HexaApp.
+     * @return A new empty HexaApp
+     */
+    public static HexaApp create() {
+<span class="fc" id="L28">        return new HexaAppImpl();</span>
+    }
+
+    /**
+     * Add a use case to this HexaApp (used internally by builder).
+     */
+    public &lt;I, O&gt; HexaApp withUseCase(String name, UseCase&lt;I, O&gt; useCase) {
+<span class="fc" id="L35">        useCases.put(name, useCase);</span>
+<span class="fc" id="L36">        return this;</span>
+    }
+
+    /**
+     * Add a use case using a type-safe key.
+     *
+     * &lt;p&gt;Example:
+     * &lt;pre class=&quot;language-java&quot;&gt;{@code
+     * app.withUseCase(CREATE_TASK, new CreateTaskHandler(app));
+     * }&lt;/pre&gt;
+     *
+     * @param key The type-safe use case key
+     * @param useCase The use case implementation
+     * @param &lt;I&gt; Input type
+     * @param &lt;O&gt; Output type
+     * @return This HexaApp for chaining
+     */
+    public &lt;I, O&gt; HexaApp withUseCase(UseCaseKey&lt;I, O&gt; key, UseCase&lt;I, O&gt; useCase) {
+<span class="nc" id="L54">        useCases.put(key.name(), useCase);</span>
+<span class="nc" id="L55">        return this;</span>
+    }
+
+    /**
+     * Register a port (output adapter) by its type.
+     * Provides type-safe dependency injection for output ports.
+     *
+     * &lt;p&gt;Example:
+     * &lt;pre class=&quot;language-java&quot;&gt;{@code
+     * app.port(TaskRepository.class, new InMemoryTaskRepository());
+     * }&lt;/pre&gt;
+     *
+     * @param type The interface/class type to register
+     * @param impl The implementation instance
+     * @param &lt;T&gt; The port type
+     * @return This HexaApp for chaining
+     */
+    public &lt;T&gt; HexaApp port(Class&lt;T&gt; type, T impl) {
+<span class="fc" id="L73">        ports.put(type, impl);</span>
+<span class="fc" id="L74">        return this;</span>
+    }
+
+    /**
+     * Retrieve a port by its type.
+     *
+     * &lt;p&gt;Example:
+     * &lt;pre class=&quot;language-java&quot;&gt;{@code
+     * TaskRepository repo = app.port(TaskRepository.class);
+     * }&lt;/pre&gt;
+     *
+     * @param type The interface/class type to retrieve
+     * @param &lt;T&gt; The port type
+     * @return The registered implementation
+     * @throws IllegalArgumentException if no port is registered for the given type
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public &lt;T&gt; T port(Class&lt;T&gt; type) {
+<span class="fc" id="L92">        T impl = (T) ports.get(type);</span>
+<span class="fc bfc" id="L93" title="All 2 branches covered.">        if (impl == null) {</span>
+<span class="fc" id="L94">            throw new IllegalArgumentException(</span>
+<span class="fc" id="L95">                &quot;No port registered for type: &quot; + type.getName()</span>
+            );
+        }
+<span class="fc" id="L98">        return impl;</span>
+    }
+
+    /**
+     * Check if a port is registered for the given type.
+     *
+     * @param type The interface/class type to check
+     * @return true if a port is registered, false otherwise
+     */
+    public boolean hasPort(Class&lt;?&gt; type) {
+<span class="fc" id="L108">        return ports.containsKey(type);</span>
+    }
+
+    /**
+     * Get all registered port types.
+     *
+     * @return A set of registered port types
+     */
+    public Set&lt;Class&lt;?&gt;&gt; registeredPorts() {
+<span class="fc" id="L117">        return ports.keySet();</span>
+    }
+
+    // ===== Adapters =====
+
+    /**
+     * Register an adapter with a type-safe key.
+     * Adapters transform data from one type to another.
+     *
+     * &lt;p&gt;Example:
+     * &lt;pre class=&quot;language-java&quot;&gt;{@code
+     * app.withAdapter(TO_INVENTORY, req -&gt; new InventoryCheck(req.itemId()));
+     * }&lt;/pre&gt;
+     *
+     * @param key The type-safe adapter key
+     * @param adapter The adapter function
+     * @param &lt;From&gt; The source type
+     * @param &lt;To&gt; The target type
+     * @return This HexaApp for chaining
+     */
+    public &lt;From, To&gt; HexaApp withAdapter(AdapterKey&lt;From, To&gt; key, Function&lt;From, To&gt; adapter) {
+<span class="fc" id="L138">        adapters.put(key.name(), adapter);</span>
+<span class="fc" id="L139">        return this;</span>
+    }
+
+    /**
+     * Register an adapter by name (used internally by builder).
+     *
+     * @param name The adapter name
+     * @param adapter The adapter function
+     * @param &lt;From&gt; The source type
+     * @param &lt;To&gt; The target type
+     * @return This HexaApp for chaining
+     */
+    public &lt;From, To&gt; HexaApp withAdapter(String name, Function&lt;From, To&gt; adapter) {
+<span class="fc" id="L152">        adapters.put(name, adapter);</span>
+<span class="fc" id="L153">        return this;</span>
+    }
+
+    /**
+     * Adapt a value using a type-safe adapter key.
+     * Transforms the input from one type to another.
+     *
+     * &lt;p&gt;Example:
+     * &lt;pre class=&quot;language-java&quot;&gt;{@code
+     * InventoryCheck check = app.adapt(TO_INVENTORY, orderRequest);
+     * }&lt;/pre&gt;
+     *
+     * @param key The type-safe adapter key
+     * @param input The value to adapt
+     * @param &lt;From&gt; The source type
+     * @param &lt;To&gt; The target type
+     * @return The adapted value
+     * @throws IllegalArgumentException if no adapter is registered with the given key
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public &lt;From, To&gt; To adapt(AdapterKey&lt;From, To&gt; key, From input) {
+<span class="fc" id="L174">        Function&lt;From, To&gt; adapter = (Function&lt;From, To&gt;) adapters.get(key.name());</span>
+<span class="fc bfc" id="L175" title="All 2 branches covered.">        if (adapter == null) {</span>
+<span class="fc" id="L176">            throw new IllegalArgumentException(</span>
+<span class="fc" id="L177">                &quot;No adapter registered with name: &quot; + key.name()</span>
+            );
+        }
+<span class="fc" id="L180">        return adapter.apply(input);</span>
+    }
+
+    /**
+     * Check if an adapter is registered for the given key.
+     *
+     * @param key The adapter key to check
+     * @return true if an adapter is registered, false otherwise
+     */
+    public boolean hasAdapter(AdapterKey&lt;?, ?&gt; key) {
+<span class="fc" id="L190">        return adapters.containsKey(key.name());</span>
+    }
+
+    /**
+     * Get all registered adapter names.
+     *
+     * @return A set of registered adapter names
+     */
+    public Set&lt;String&gt; registeredAdapters() {
+<span class="fc" id="L199">        return adapters.keySet();</span>
+    }
+
+    /**
+     * Invoke a use case using a type-safe key.
+     * Provides compile-time type checking for input and output types.
+     *
+     * @param key The type-safe key for the use case
+     * @param input The input to the use case
+     * @param &lt;I&gt; The input type of the use case
+     * @param &lt;O&gt; The output type of the use case
+     * @return The result of the use case
+     * @throws IllegalArgumentException if no use case is registered with the given key
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public &lt;I, O&gt; O invoke(UseCaseKey&lt;I, O&gt; key, I input) {
+<span class="fc" id="L215">        UseCase&lt;I, O&gt; useCase = (UseCase&lt;I, O&gt;) useCases.get(key.name());</span>
+<span class="fc bfc" id="L216" title="All 2 branches covered.">        if (useCase == null) {</span>
+<span class="fc" id="L217">            throw new IllegalArgumentException(</span>
+<span class="fc" id="L218">                &quot;No use case registered with name: &quot; + key.name()</span>
+            );
+        }
+<span class="fc" id="L221">        return useCase.apply(input);</span>
+    }
+
+    /**
+     * Get the names of all registered use cases.
+     * @return A set of registered use case names
+     */
+    public Set&lt;String&gt; registeredUseCases() {
+<span class="nc" id="L229">        return useCases.keySet();</span>
+    }
+
+    /**
+     * Invoke a use case by name (for internal/testing use).
+     * Prefer using {@link #invoke(UseCaseKey, Object)} for type safety.
+     *
+     * @param name The name of the use case
+     * @param input The input to the use case
+     * @param &lt;I&gt; The input type
+     * @param &lt;O&gt; The output type
+     * @return The result of the use case
+     * @throws IllegalArgumentException if no use case is registered with the given name
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public &lt;I, O&gt; O invokeByName(String name, I input) {
+<span class="fc" id="L245">        UseCase&lt;I, O&gt; useCase = (UseCase&lt;I, O&gt;) useCases.get(name);</span>
+<span class="pc bpc" id="L246" title="1 of 2 branches missed.">        if (useCase == null) {</span>
+<span class="nc" id="L247">            throw new IllegalArgumentException(</span>
+                &quot;No use case registered with name: &quot; + name
+            );
+        }
+<span class="fc" id="L251">        return useCase.apply(input);</span>
+    }
+
+    /**
+     * Start testing a use case using a type-safe key.
+     *
+     * @param key The type-safe key for the use case
+     * @param &lt;I&gt; Input type of the use case
+     * @param &lt;O&gt; Output type of the use case
+     * @return A new UseCaseTest instance
+     */
+    public &lt;I, O&gt; UseCaseTest&lt;I, O&gt; test(UseCaseKey&lt;I, O&gt; key) {
+<span class="fc" id="L263">        return HexaTest.forApp(this).test(key.name());</span>
+    }
+
+    /**
+     * Optional startup logic.
+     */
+    public void run() {
+        // optional startup logic
+<span class="nc" id="L271">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

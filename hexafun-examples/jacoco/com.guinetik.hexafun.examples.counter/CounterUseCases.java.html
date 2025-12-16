@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CounterUseCases.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script>
+<!-- <!-- terminal-javadocs-injected [coverage] -->
+<link rel="stylesheet" href="../../terminal-styles/terminaljavadocs-coverage.min.css">
+<script src="../../terminal-styles/terminaljavadocs.min.js" defer></script>
+</head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">HexaFun Examples</a> &gt; <a href="index.source.html" class="el_package">com.guinetik.hexafun.examples.counter</a> &gt; <span class="el_source">CounterUseCases.java</span></div><h1>CounterUseCases.java</h1><pre class="source lang-java linenums">package com.guinetik.hexafun.examples.counter;
+
+import com.guinetik.hexafun.fun.Result;
+import com.guinetik.hexafun.hexa.UseCaseKey;
+import com.guinetik.hexafun.examples.counter.CounterInputs.*;
+
+/**
+ * Type-safe use case keys for counter operations.
+ *
+ * &lt;p&gt;Define all use case signatures in one place.
+ * Provides compile-time type safety for invocation.
+ */
+public interface CounterUseCases {
+
+<span class="fc" id="L15">    UseCaseKey&lt;IncrementInput, Result&lt;Counter&gt;&gt; INCREMENT =</span>
+<span class="fc" id="L16">            UseCaseKey.of(&quot;increment&quot;);</span>
+
+<span class="fc" id="L18">    UseCaseKey&lt;DecrementInput, Result&lt;Counter&gt;&gt; DECREMENT =</span>
+<span class="fc" id="L19">            UseCaseKey.of(&quot;decrement&quot;);</span>
+
+<span class="fc" id="L21">    UseCaseKey&lt;AddInput, Result&lt;Counter&gt;&gt; ADD =</span>
+<span class="fc" id="L22">            UseCaseKey.of(&quot;add&quot;);</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

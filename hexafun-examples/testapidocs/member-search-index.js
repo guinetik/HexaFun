@@ -1,0 +1,1 @@
+memberSearchIndex = [{"p":"com.guinetik.hexafun.examples.counter","c":"CounterAppTest","l":"CounterAppTest()","u":"%3Cinit%3E()"},{"p":"com.guinetik.hexafun.examples.tasks","c":"TaskAppTest","l":"TaskAppTest()","u":"%3Cinit%3E()"}];updateSearchResults();

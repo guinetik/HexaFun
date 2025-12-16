@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RealMetricsProvider.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script>
+<!-- <!-- terminal-javadocs-injected [coverage] -->
+<link rel="stylesheet" href="../../terminal-styles/terminaljavadocs-coverage.min.css">
+<script src="../../terminal-styles/terminaljavadocs.min.js" defer></script>
+</head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">HexaFun Examples</a> &gt; <a href="index.source.html" class="el_package">com.guinetik.hexafun.examples.sysmon</a> &gt; <span class="el_source">RealMetricsProvider.java</span></div><h1>RealMetricsProvider.java</h1><pre class="source lang-java linenums">package com.guinetik.hexafun.examples.sysmon;
+
+import java.io.File;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
+import java.lang.management.OperatingSystemMXBean;
+
+/**
+ * Real implementation of MetricsProvider using JVM/OS metrics.
+ *
+ * &lt;p&gt;Uses Java's management beans to read actual system metrics.
+ * Note: CPU load may return -1 if not available on the platform.&lt;/p&gt;
+ */
+public class RealMetricsProvider implements MetricsProvider {
+
+    private final OperatingSystemMXBean osBean;
+    private final MemoryMXBean memoryBean;
+
+<span class="nc" id="L19">    public RealMetricsProvider() {</span>
+<span class="nc" id="L20">        this.osBean = ManagementFactory.getOperatingSystemMXBean();</span>
+<span class="nc" id="L21">        this.memoryBean = ManagementFactory.getMemoryMXBean();</span>
+<span class="nc" id="L22">    }</span>
+
+    @Override
+    public double getCpuUsage() {
+        if (
+<span class="nc bnc" id="L27" title="All 2 branches missed.">            osBean instanceof com.sun.management.OperatingSystemMXBean sunBean</span>
+        ) {
+<span class="nc" id="L29">            double load = sunBean.getCpuLoad();</span>
+
+            // First call returns -1, need to wait and retry
+<span class="nc bnc" id="L32" title="All 2 branches missed.">            if (load &lt; 0) {</span>
+                try {
+<span class="nc" id="L34">                    Thread.sleep(100); // Let it collect data</span>
+<span class="nc" id="L35">                    load = sunBean.getCpuLoad();</span>
+<span class="nc" id="L36">                } catch (InterruptedException ignored) {}</span>
+            }
+
+<span class="nc bnc" id="L39" title="All 2 branches missed.">            if (load &gt;= 0) {</span>
+<span class="nc" id="L40">                return load * 100.0;</span>
+            }
+        }
+<span class="nc" id="L43">        return -1;</span>
+    }
+
+    @Override
+    public double getMemoryUsage() {
+        if (
+<span class="nc bnc" id="L49" title="All 2 branches missed.">            osBean instanceof com.sun.management.OperatingSystemMXBean sunBean</span>
+        ) {
+<span class="nc" id="L51">            long total = sunBean.getTotalMemorySize();</span>
+<span class="nc" id="L52">            long free = sunBean.getFreeMemorySize();</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">            if (total &gt; 0) {</span>
+<span class="nc" id="L54">                return ((double) (total - free) / total) * 100.0;</span>
+            }
+        }
+
+        // Fallback: JVM heap usage (not system memory, but better than nothing)
+<span class="nc" id="L59">        var heap = memoryBean.getHeapMemoryUsage();</span>
+<span class="nc" id="L60">        return ((double) heap.getUsed() / heap.getMax()) * 100.0;</span>
+    }
+
+    @Override
+    public double getDiskUsage() {
+        // Get all roots and pick the main one
+<span class="nc" id="L66">        File[] roots = File.listRoots();</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">        if (roots.length == 0) return -1;</span>
+
+        // Use first root (C:\ on Windows, / on Unix)
+<span class="nc" id="L70">        File root = roots[0];</span>
+<span class="nc" id="L71">        long total = root.getTotalSpace();</span>
+<span class="nc" id="L72">        long free = root.getUsableSpace(); // usableSpace is more accurate than freeSpace</span>
+
+<span class="nc bnc" id="L74" title="All 2 branches missed.">        if (total &gt; 0) {</span>
+<span class="nc" id="L75">            return ((double) (total - free) / total) * 100.0;</span>
+        }
+<span class="nc" id="L77">        return -1;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

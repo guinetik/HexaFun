@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdapterKey.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script>
+<!-- <!-- terminal-javadocs-injected [coverage] -->
+<link rel="stylesheet" href="../../terminal-styles/terminaljavadocs-coverage.min.css">
+<script src="../../terminal-styles/terminaljavadocs.min.js" defer></script>
+</head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">HexaFun Core</a> &gt; <a href="index.source.html" class="el_package">com.guinetik.hexafun.hexa</a> &gt; <span class="el_source">AdapterKey.java</span></div><h1>AdapterKey.java</h1><pre class="source lang-java linenums">package com.guinetik.hexafun.hexa;
+
+import java.util.Objects;
+
+/**
+ * Type-safe key for adapter registration and invocation.
+ * Provides compile-time type checking for transformations between types.
+ *
+ * &lt;p&gt;Adapters transform data from one type to another, useful for:
+ * &lt;ul&gt;
+ *   &lt;li&gt;Converting between use case input types&lt;/li&gt;
+ *   &lt;li&gt;Mapping domain objects to DTOs&lt;/li&gt;
+ *   &lt;li&gt;Transforming external data to internal representations&lt;/li&gt;
+ * &lt;/ul&gt;
+ *
+ * &lt;p&gt;Usage:
+ * &lt;pre class=&quot;language-java&quot;&gt;{@code
+ * // Define keys as constants
+ * public interface OrderAdapters {
+ *     AdapterKey&lt;OrderRequest, InventoryCheck&gt; TO_INVENTORY =
+ *         AdapterKey.of(&quot;orderToInventory&quot;);
+ *     AdapterKey&lt;OrderRequest, PaymentRequest&gt; TO_PAYMENT =
+ *         AdapterKey.of(&quot;orderToPayment&quot;);
+ * }
+ *
+ * // Register in DSL
+ * HexaFun.dsl()
+ *     .withAdapter(TO_INVENTORY, req -&gt; new InventoryCheck(req.itemId()))
+ *     .withAdapter(TO_PAYMENT, req -&gt; new PaymentRequest(req.total()))
+ *     .useCase(...)
+ *     .build();
+ *
+ * // Type-safe adaptation
+ * InventoryCheck check = app.adapt(TO_INVENTORY, orderRequest);
+ * }&lt;/pre&gt;
+ *
+ * @param &lt;From&gt; The source type to adapt from
+ * @param &lt;To&gt; The target type to adapt to
+ */
+public final class AdapterKey&lt;From, To&gt; {
+
+    private final String name;
+
+<span class="fc" id="L44">    private AdapterKey(String name) {</span>
+<span class="fc" id="L45">        this.name = Objects.requireNonNull(</span>
+            name,
+            &quot;Adapter name cannot be null&quot;
+        );
+<span class="fc" id="L49">    }</span>
+
+    /**
+     * Create a new type-safe adapter key.
+     *
+     * @param name The unique name for this adapter
+     * @param &lt;From&gt; The source type
+     * @param &lt;To&gt; The target type
+     * @return A new AdapterKey instance
+     */
+    public static &lt;From, To&gt; AdapterKey&lt;From, To&gt; of(String name) {
+<span class="fc" id="L60">        return new AdapterKey&lt;&gt;(name);</span>
+    }
+
+    /**
+     * Get the string name of this adapter key.
+     * @return The adapter name
+     */
+    public String name() {
+<span class="fc" id="L68">        return name;</span>
+    }
+
+    @Override
+    public boolean equals(Object o) {
+<span class="pc bpc" id="L73" title="1 of 2 branches missed.">        if (this == o) return true;</span>
+<span class="pc bpc" id="L74" title="2 of 4 branches missed.">        if (o == null || getClass() != o.getClass()) return false;</span>
+<span class="fc" id="L75">        AdapterKey&lt;?, ?&gt; that = (AdapterKey&lt;?, ?&gt;) o;</span>
+<span class="fc" id="L76">        return name.equals(that.name);</span>
+    }
+
+    @Override
+    public int hashCode() {
+<span class="fc" id="L81">        return name.hashCode();</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="fc" id="L86">        return &quot;AdapterKey(&quot; + name + &quot;)&quot;;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>CounterUseCases xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../../stylesheet.css" />
+
+<!-- <!-- terminal-javadocs-injected [jxr] -->
+<link rel="stylesheet" href="../../../../../../terminal-styles/terminaljavadocs-jxr.min.css">
+<script src="../../../../../../terminal-styles/terminaljavadocs.min.js" defer></script>
+</head>
+<body>
+<div id="overview"><a href="../../../../../../apidocs/com/guinetik/hexafun/examples/counter/CounterUseCases.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> com.guinetik.hexafun.examples.counter;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> com.guinetik.hexafun.fun.Result;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> com.guinetik.hexafun.hexa.UseCaseKey;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> com.guinetik.hexafun.examples.counter.CounterInputs.*;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <em class="jxr_javadoccomment"> * Type-safe use case keys for counter operations.</em>
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <em class="jxr_javadoccomment"> * &lt;p&gt;Define all use case signatures in one place.</em>
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <em class="jxr_javadoccomment"> * Provides compile-time type safety for invocation.</em>
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">interface</strong> <a name="CounterUseCases" href="../../../../../com/guinetik/hexafun/examples/counter/CounterUseCases.html#CounterUseCases">CounterUseCases</a> {
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>      UseCaseKey&lt;IncrementInput, Result&lt;Counter&gt;&gt; INCREMENT =
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>              UseCaseKey.of(<span class="jxr_string">"increment"</span>);
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>      UseCaseKey&lt;DecrementInput, Result&lt;Counter&gt;&gt; DECREMENT =
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>              UseCaseKey.of(<span class="jxr_string">"decrement"</span>);
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>      UseCaseKey&lt;AddInput, Result&lt;Counter&gt;&gt; ADD =
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>              UseCaseKey.of(<span class="jxr_string">"add"</span>);
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2025. All rights reserved.</div>
+</body>
+</html>

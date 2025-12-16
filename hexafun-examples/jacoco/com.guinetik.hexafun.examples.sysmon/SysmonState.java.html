@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SysmonState.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script>
+<!-- <!-- terminal-javadocs-injected [coverage] -->
+<link rel="stylesheet" href="../../terminal-styles/terminaljavadocs-coverage.min.css">
+<script src="../../terminal-styles/terminaljavadocs.min.js" defer></script>
+</head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">HexaFun Examples</a> &gt; <a href="index.source.html" class="el_package">com.guinetik.hexafun.examples.sysmon</a> &gt; <span class="el_source">SysmonState.java</span></div><h1>SysmonState.java</h1><pre class="source lang-java linenums">package com.guinetik.hexafun.examples.sysmon;
+
+import static com.guinetik.hexafun.examples.sysmon.SysmonKeys.*;
+import static com.guinetik.hexafun.examples.tui.Ansi.*;
+
+import com.guinetik.hexafun.HexaApp;
+import com.guinetik.hexafun.examples.tui.HexaTerminal;
+
+/**
+ * Immutable state for the System Monitor TUI.
+ *
+ * &lt;p&gt;This record holds all state needed to render the UI and process
+ * user input. State transitions produce new instances rather than
+ * mutating, enabling a functional TUI pattern.&lt;/p&gt;
+ *
+ * &lt;h2&gt;State Transitions&lt;/h2&gt;
+ * &lt;ul&gt;
+ *   &lt;li&gt;{@link #withFormat(SysmonFormat)} - Switch output format&lt;/li&gt;
+ *   &lt;li&gt;{@link #withStatus(String, String)} - Show status message&lt;/li&gt;
+ *   &lt;li&gt;{@link #refresh()} - Recalculate metrics&lt;/li&gt;
+ *   &lt;li&gt;{@link #stop()} - Signal exit&lt;/li&gt;
+ * &lt;/ul&gt;
+ *
+ * @param app The HexaApp instance for invoking use cases and adapters
+ * @param format Current output format selection
+ * @param width Terminal width for responsive layout
+ * @param status Status message to display
+ * @param statusColor ANSI color for status message
+ * @param running Whether the TUI should continue running
+ */
+<span class="nc" id="L31">public record SysmonState(</span>
+    HexaApp app,
+    SysmonFormat format,
+    int width,
+    String status,
+    String statusColor,
+    boolean running
+) {
+    private static final int MIN_WIDTH = 50;
+
+    /**
+     * Create initial state with default values.
+     *
+     * @param app The configured HexaApp instance
+     * @return Initial state ready for rendering
+     */
+    public static SysmonState initial(HexaApp app) {
+<span class="nc" id="L48">        return new SysmonState(app, SysmonFormat.TUI, detectWidth(), &quot;&quot;, GREEN, true);</span>
+    }
+
+    /**
+     * Transition to a new output format.
+     *
+     * @param f The new format to use
+     * @return New state with format changed and status message
+     */
+    public SysmonState withFormat(SysmonFormat f) {
+<span class="nc" id="L58">        return new SysmonState(</span>
+            app,
+            f,
+            width,
+            &quot;Switched to &quot; + f.label,
+            f.color,
+            running
+        );
+    }
+
+    /**
+     * Set a status message.
+     *
+     * @param msg The message to display
+     * @param color ANSI color for the message
+     * @return New state with status updated
+     */
+    public SysmonState withStatus(String msg, String color) {
+<span class="nc" id="L76">        return new SysmonState(app, format, width, msg, color, running);</span>
+    }
+
+    /**
+     * Signal that the TUI should stop.
+     *
+     * @return New state with running=false
+     */
+    public SysmonState stop() {
+<span class="nc" id="L85">        return new SysmonState(app, format, width, &quot;Goodbye!&quot;, CYAN, false);</span>
+    }
+
+    /**
+     * Refresh state, re-detecting terminal width.
+     *
+     * @return New state with cleared status and updated width
+     */
+    public SysmonState refresh() {
+<span class="nc" id="L94">        return new SysmonState(app, format, detectWidth(), &quot;&quot;, GREEN, running);</span>
+    }
+
+    /**
+     * Get current system metrics by invoking the GET_ALL use case.
+     *
+     * @return Current SystemMetrics from the provider
+     */
+    public SystemMetrics metrics() {
+<span class="nc" id="L103">        return app.invoke(GET_ALL, null);</span>
+    }
+
+    private static int detectWidth() {
+<span class="nc" id="L107">        return HexaTerminal.detectWidth(MIN_WIDTH, 80);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

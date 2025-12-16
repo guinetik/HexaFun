@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HexaTest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script>
+<!-- <!-- terminal-javadocs-injected [coverage] -->
+<link rel="stylesheet" href="../../terminal-styles/terminaljavadocs-coverage.min.css">
+<script src="../../terminal-styles/terminaljavadocs.min.js" defer></script>
+</head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">HexaFun Core</a> &gt; <a href="index.source.html" class="el_package">com.guinetik.hexafun.testing</a> &gt; <span class="el_source">HexaTest.java</span></div><h1>HexaTest.java</h1><pre class="source lang-java linenums">package com.guinetik.hexafun.testing;
+
+import com.guinetik.hexafun.HexaApp;
+
+/**
+ * Entry point for the HexaFun testing DSL.
+ * Provides a fluent API for testing use cases in a HexaApp.
+ */
+public class HexaTest {
+    private final HexaApp app;
+
+<span class="fc" id="L12">    private HexaTest(HexaApp app) {</span>
+<span class="fc" id="L13">        this.app = app;</span>
+<span class="fc" id="L14">    }</span>
+
+    /**
+     * Create a new HexaTest for the given app.
+     * @param app The HexaApp to test
+     * @return A new HexaTest instance
+     */
+    public static HexaTest forApp(HexaApp app) {
+<span class="fc" id="L22">        return new HexaTest(app);</span>
+    }
+
+    /**
+     * Start testing a use case.
+     * @param useCaseName Name of the use case to test
+     * @param &lt;I&gt; Input type of the use case
+     * @param &lt;O&gt; Output type of the use case
+     * @return A new UseCaseTest instance
+     */
+    public &lt;I, O&gt; UseCaseTest&lt;I, O&gt; useCase(String useCaseName) {
+<span class="fc" id="L33">        return new UseCaseTest&lt;&gt;(app, useCaseName);</span>
+    }
+    
+    /**
+     * Start a test for the specified use case.
+     * Simply a shorter method name for useCase() to better match the example in the README.
+     * @param useCaseName Name of the use case to test
+     * @param &lt;I&gt; Input type of the use case
+     * @param &lt;O&gt; Output type of the use case
+     * @return A new UseCaseTest instance
+     */
+    public &lt;I, O&gt; UseCaseTest&lt;I, O&gt; test(String useCaseName) {
+<span class="fc" id="L45">        return useCase(useCaseName);</span>
+    }
+
+    /**
+     * Verify that a use case exists in the app.
+     * @param useCaseName Name of the use case to check
+     * @return This HexaTest instance
+     * @throws AssertionError if the use case doesn't exist
+     */
+    public HexaTest hasUseCase(String useCaseName) {
+<span class="fc bfc" id="L55" title="All 2 branches covered.">        if (!app.registeredUseCases().contains(useCaseName)) {</span>
+<span class="fc" id="L56">            throw new AssertionError(&quot;Expected use case '&quot; + useCaseName + &quot;' to exist, but it doesn't&quot;);</span>
+        }
+<span class="fc" id="L58">        return this;</span>
+    }
+
+    /**
+     * Verify that a use case does not exist in the app.
+     * @param useCaseName Name of the use case to check
+     * @return This HexaTest instance
+     * @throws AssertionError if the use case exists
+     */
+    public HexaTest doesNotHaveUseCase(String useCaseName) {
+<span class="fc bfc" id="L68" title="All 2 branches covered.">        if (app.registeredUseCases().contains(useCaseName)) {</span>
+<span class="fc" id="L69">            throw new AssertionError(&quot;Expected use case '&quot; + useCaseName + &quot;' to not exist, but it does&quot;);</span>
+        }
+<span class="fc" id="L71">        return this;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

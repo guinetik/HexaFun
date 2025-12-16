@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SysmonAdapters.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script>
+<!-- <!-- terminal-javadocs-injected [coverage] -->
+<link rel="stylesheet" href="../../terminal-styles/terminaljavadocs-coverage.min.css">
+<script src="../../terminal-styles/terminaljavadocs.min.js" defer></script>
+</head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">HexaFun Examples</a> &gt; <a href="index.source.html" class="el_package">com.guinetik.hexafun.examples.sysmon</a> &gt; <span class="el_source">SysmonAdapters.java</span></div><h1>SysmonAdapters.java</h1><pre class="source lang-java linenums">package com.guinetik.hexafun.examples.sysmon;
+
+import java.util.function.Function;
+
+import static com.guinetik.hexafun.examples.tui.Ansi.*;
+import static com.guinetik.hexafun.examples.tui.Widgets.*;
+
+/**
+ * Output adapters for SystemMetrics - transforms domain data to presentation formats.
+ *
+ * &lt;p&gt;This is where the hexagonal architecture shines: same domain object,
+ * four completely different presentations. The domain knows nothing about
+ * how it will be displayed.&lt;/p&gt;
+ *
+ * &lt;h2&gt;Available Formats&lt;/h2&gt;
+ * &lt;ul&gt;
+ *   &lt;li&gt;&lt;b&gt;TUI&lt;/b&gt; - Colorful progress bars with warnings&lt;/li&gt;
+ *   &lt;li&gt;&lt;b&gt;CLI&lt;/b&gt; - Plain text for scripting&lt;/li&gt;
+ *   &lt;li&gt;&lt;b&gt;JSON&lt;/b&gt; - Machine-readable&lt;/li&gt;
+ *   &lt;li&gt;&lt;b&gt;Prometheus&lt;/b&gt; - Metrics exposition format&lt;/li&gt;
+ * &lt;/ul&gt;
+ */
+public final class SysmonAdapters {
+
+    private SysmonAdapters() {}
+
+    private static final int BAR_WIDTH = 20;
+    private static final int BOX_WIDTH = 36;
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  TUI ADAPTER - Colorful gauges with box drawing
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * TUI format with colorful progress bars and warning indicators.
+     *
+     * &lt;pre&gt;
+     * ┌─ System Monitor ─────────────────┐
+     * │ CPU  [████████░░░░░░░░░░░░] 67%  │
+     * │ MEM  [██████████░░░░░░░░░░] 52%  │
+     * │ DISK [██████████████████░░] 91% ⚠│
+     * └──────────────────────────────────┘
+     * &lt;/pre&gt;
+     */
+<span class="nc" id="L45">    public static final Function&lt;SystemMetrics, String&gt; TUI_ADAPTER = metrics -&gt; {</span>
+<span class="nc" id="L46">        StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L47">        String indent = &quot;  &quot;;</span>
+
+        // Header
+<span class="nc" id="L50">        sb.append(indent).append(color(BOX_TOP_LEFT + &quot;─ System Monitor &quot; +</span>
+<span class="nc" id="L51">            repeat(BOX_HORIZONTAL, BOX_WIDTH - 19) + BOX_TOP_RIGHT, CYAN)).append(&quot;\n&quot;);</span>
+
+        // CPU gauge
+<span class="nc" id="L54">        sb.append(indent).append(color(BOX_VERTICAL, CYAN))</span>
+<span class="nc" id="L55">          .append(gauge(&quot;CPU &quot;, metrics.cpu(), metrics.cpuWarning()))</span>
+<span class="nc" id="L56">          .append(color(BOX_VERTICAL, CYAN)).append(&quot;\n&quot;);</span>
+
+        // Memory gauge
+<span class="nc" id="L59">        sb.append(indent).append(color(BOX_VERTICAL, CYAN))</span>
+<span class="nc" id="L60">          .append(gauge(&quot;MEM &quot;, metrics.memory(), metrics.memoryWarning()))</span>
+<span class="nc" id="L61">          .append(color(BOX_VERTICAL, CYAN)).append(&quot;\n&quot;);</span>
+
+        // Disk gauge
+<span class="nc" id="L64">        sb.append(indent).append(color(BOX_VERTICAL, CYAN))</span>
+<span class="nc" id="L65">          .append(gauge(&quot;DISK&quot;, metrics.disk(), metrics.diskWarning()))</span>
+<span class="nc" id="L66">          .append(color(BOX_VERTICAL, CYAN)).append(&quot;\n&quot;);</span>
+
+        // Footer
+<span class="nc" id="L69">        sb.append(indent).append(color(BOX_BOTTOM_LEFT + repeat(BOX_HORIZONTAL, BOX_WIDTH - 2) +</span>
+<span class="nc" id="L70">            BOX_BOTTOM_RIGHT, CYAN)).append(&quot;\n&quot;);</span>
+
+<span class="nc" id="L72">        return sb.toString();</span>
+    };
+
+    /**
+     * Build a single gauge line with color-coded bar.
+     */
+    private static String gauge(String label, double percent, boolean warning) {
+<span class="nc" id="L79">        int filled = (int) ((BAR_WIDTH * percent) / 100);</span>
+<span class="nc" id="L80">        int empty = BAR_WIDTH - filled;</span>
+
+<span class="nc bnc" id="L82" title="All 2 branches missed.">        String barColor = warning ? RED : GREEN;</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">        String warnIcon = warning ? color(&quot; ⚠&quot;, YELLOW) : &quot;  &quot;;</span>
+
+<span class="nc" id="L85">        return &quot; &quot; + color(label, BOLD) + &quot; &quot; +</span>
+<span class="nc" id="L86">            color(&quot;[&quot;, DIM) +</span>
+<span class="nc" id="L87">            color(repeat(BLOCK_FULL, filled), barColor) +</span>
+<span class="nc" id="L88">            color(repeat(BLOCK_LIGHT, empty), BRIGHT_BLACK) +</span>
+<span class="nc" id="L89">            color(&quot;]&quot;, DIM) +</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">            color(String.format(&quot; %3.0f%%&quot;, percent), warning ? RED : WHITE) +</span>
+            warnIcon + &quot; &quot;;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  CLI ADAPTER - Plain text for scripting
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * CLI format - simple key: value pairs for shell scripts.
+     *
+     * &lt;pre&gt;
+     * cpu: 67%
+     * mem: 52%
+     * disk: 91%
+     * &lt;/pre&gt;
+     */
+<span class="nc" id="L107">    public static final Function&lt;SystemMetrics, String&gt; CLI_ADAPTER = metrics -&gt;</span>
+<span class="nc" id="L108">        String.format(&quot;cpu: %.0f%%\nmem: %.0f%%\ndisk: %.0f%%\n&quot;,</span>
+<span class="nc" id="L109">            metrics.cpu(), metrics.memory(), metrics.disk());</span>
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  JSON ADAPTER - Machine readable
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * JSON format for APIs and data interchange (pretty-printed).
+     *
+     * &lt;pre&gt;
+     * {
+     *   &quot;cpu&quot;: 67.0,
+     *   &quot;memory&quot;: 52.0,
+     *   &quot;disk&quot;: 91.0,
+     *   &quot;warnings&quot;: [&quot;disk&quot;]
+     * }
+     * &lt;/pre&gt;
+     */
+<span class="nc" id="L127">    public static final Function&lt;SystemMetrics, String&gt; JSON_ADAPTER = metrics -&gt; {</span>
+<span class="nc" id="L128">        StringBuilder warnings = new StringBuilder(&quot;[&quot;);</span>
+<span class="nc" id="L129">        boolean first = true;</span>
+<span class="nc bnc" id="L130" title="All 2 branches missed.">        if (metrics.cpuWarning()) {</span>
+<span class="nc" id="L131">            warnings.append(&quot;\&quot;cpu\&quot;&quot;);</span>
+<span class="nc" id="L132">            first = false;</span>
+        }
+<span class="nc bnc" id="L134" title="All 2 branches missed.">        if (metrics.memoryWarning()) {</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">            if (!first) warnings.append(&quot;, &quot;);</span>
+<span class="nc" id="L136">            warnings.append(&quot;\&quot;memory\&quot;&quot;);</span>
+<span class="nc" id="L137">            first = false;</span>
+        }
+<span class="nc bnc" id="L139" title="All 2 branches missed.">        if (metrics.diskWarning()) {</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">            if (!first) warnings.append(&quot;, &quot;);</span>
+<span class="nc" id="L141">            warnings.append(&quot;\&quot;disk\&quot;&quot;);</span>
+        }
+<span class="nc" id="L143">        warnings.append(&quot;]&quot;);</span>
+
+<span class="nc" id="L145">        return String.format(</span>
+            &quot;{\n  \&quot;cpu\&quot;: %.1f,\n  \&quot;memory\&quot;: %.1f,\n  \&quot;disk\&quot;: %.1f,\n  \&quot;warnings\&quot;: %s\n}\n&quot;,
+<span class="nc" id="L147">            metrics.cpu(), metrics.memory(), metrics.disk(), warnings</span>
+        );
+    };
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  PROMETHEUS ADAPTER - Metrics exposition format
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Prometheus exposition format for monitoring systems.
+     *
+     * &lt;pre&gt;
+     * # HELP system_cpu_percent Current CPU usage percentage
+     * # TYPE system_cpu_percent gauge
+     * system_cpu_percent 67.0
+     * # HELP system_memory_percent Current memory usage percentage
+     * # TYPE system_memory_percent gauge
+     * system_memory_percent 52.0
+     * # HELP system_disk_percent Current disk usage percentage
+     * # TYPE system_disk_percent gauge
+     * system_disk_percent 91.0
+     * &lt;/pre&gt;
+     */
+<span class="nc" id="L170">    public static final Function&lt;SystemMetrics, String&gt; PROMETHEUS_ADAPTER = metrics -&gt; {</span>
+<span class="nc" id="L171">        StringBuilder sb = new StringBuilder();</span>
+
+<span class="nc" id="L173">        sb.append(&quot;# HELP system_cpu_percent Current CPU usage percentage\n&quot;);</span>
+<span class="nc" id="L174">        sb.append(&quot;# TYPE system_cpu_percent gauge\n&quot;);</span>
+<span class="nc" id="L175">        sb.append(String.format(&quot;system_cpu_percent %.1f\n&quot;, metrics.cpu()));</span>
+
+<span class="nc" id="L177">        sb.append(&quot;# HELP system_memory_percent Current memory usage percentage\n&quot;);</span>
+<span class="nc" id="L178">        sb.append(&quot;# TYPE system_memory_percent gauge\n&quot;);</span>
+<span class="nc" id="L179">        sb.append(String.format(&quot;system_memory_percent %.1f\n&quot;, metrics.memory()));</span>
+
+<span class="nc" id="L181">        sb.append(&quot;# HELP system_disk_percent Current disk usage percentage\n&quot;);</span>
+<span class="nc" id="L182">        sb.append(&quot;# TYPE system_disk_percent gauge\n&quot;);</span>
+<span class="nc" id="L183">        sb.append(String.format(&quot;system_disk_percent %.1f\n&quot;, metrics.disk()));</span>
+
+<span class="nc" id="L185">        return sb.toString();</span>
+    };
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

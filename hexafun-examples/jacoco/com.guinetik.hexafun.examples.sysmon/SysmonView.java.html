@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SysmonView.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script>
+<!-- <!-- terminal-javadocs-injected [coverage] -->
+<link rel="stylesheet" href="../../terminal-styles/terminaljavadocs-coverage.min.css">
+<script src="../../terminal-styles/terminaljavadocs.min.js" defer></script>
+</head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">HexaFun Examples</a> &gt; <a href="index.source.html" class="el_package">com.guinetik.hexafun.examples.sysmon</a> &gt; <span class="el_source">SysmonView.java</span></div><h1>SysmonView.java</h1><pre class="source lang-java linenums">package com.guinetik.hexafun.examples.sysmon;
+
+import static com.guinetik.hexafun.examples.sysmon.SysmonKeys.*;
+import static com.guinetik.hexafun.examples.tui.Ansi.*;
+
+import com.guinetik.hexafun.examples.tui.View;
+
+/**
+ * Responsive view components for the System Monitor TUI.
+ *
+ * &lt;p&gt;All views use {@code state.width()} to render at the current terminal width.
+ * Width is recalculated on each refresh.&lt;/p&gt;
+ */
+public final class SysmonView {
+
+    private SysmonView() {}
+
+    private static final int PADDING = 4; // Left/right padding
+
+    /**
+     * Compose the full screen view.
+     */
+    public static View&lt;SysmonState&gt; screen() {
+<span class="nc" id="L24">        return clear()</span>
+<span class="nc" id="L25">            .andThen(header())</span>
+<span class="nc" id="L26">            .andThen(metrics())</span>
+<span class="nc" id="L27">            .andThen(menu())</span>
+<span class="nc" id="L28">            .andThen(status())</span>
+<span class="nc" id="L29">            .andThen(prompt());</span>
+    }
+
+    /**
+     * Clear screen and reset cursor.
+     */
+    public static View&lt;SysmonState&gt; clear() {
+<span class="nc" id="L36">        return state -&gt; CLEAR + CURSOR_HOME;</span>
+    }
+
+    /**
+     * Render the header box - responsive to terminal width.
+     */
+    public static View&lt;SysmonState&gt; header() {
+<span class="nc" id="L43">        return state -&gt; {</span>
+<span class="nc" id="L44">            int boxWidth = state.width() - PADDING;</span>
+<span class="nc" id="L45">            int innerWidth = boxWidth - 2;</span>
+
+<span class="nc" id="L47">            return lines(</span>
+                &quot;&quot;,
+<span class="nc" id="L49">                color(&quot;  &quot; + DBOX_TOP_LEFT + repeat(DBOX_HORIZONTAL, innerWidth) + DBOX_TOP_RIGHT, CYAN),</span>
+<span class="nc" id="L50">                color(&quot;  &quot; + DBOX_VERTICAL, CYAN) +</span>
+<span class="nc" id="L51">                    color(center(&quot;SYSTEM MONITOR&quot;, innerWidth), BOLD, BRIGHT_WHITE) +</span>
+<span class="nc" id="L52">                    color(DBOX_VERTICAL, CYAN),</span>
+<span class="nc" id="L53">                color(&quot;  &quot; + DBOX_VERTICAL, CYAN) +</span>
+<span class="nc" id="L54">                    color(center(&quot;HexaFun Adapter Demo&quot;, innerWidth), DIM) +</span>
+<span class="nc" id="L55">                    color(DBOX_VERTICAL, CYAN),</span>
+<span class="nc" id="L56">                color(&quot;  &quot; + DBOX_BOTTOM_LEFT + repeat(DBOX_HORIZONTAL, innerWidth) + DBOX_BOTTOM_RIGHT, CYAN),</span>
+                &quot;&quot;
+            );
+        };
+    }
+
+    /**
+     * Render the metrics output based on selected format - responsive.
+     */
+    public static View&lt;SysmonState&gt; metrics() {
+<span class="nc" id="L66">        return state -&gt; {</span>
+<span class="nc" id="L67">            SystemMetrics m = state.metrics();</span>
+<span class="nc" id="L68">            int boxWidth = state.width() - PADDING;</span>
+
+<span class="nc bnc" id="L70" title="All 4 branches missed.">            String output = switch (state.format()) {</span>
+<span class="nc" id="L71">                case TUI -&gt; renderTuiGauges(m, boxWidth);</span>
+<span class="nc" id="L72">                case CLI -&gt; formatBox(&quot;CLI Output&quot;, state.app().adapt(TO_CLI, m), boxWidth, GREEN);</span>
+<span class="nc" id="L73">                case JSON -&gt; formatBox(&quot;JSON Output&quot;, state.app().adapt(TO_JSON, m), boxWidth, YELLOW);</span>
+<span class="nc" id="L74">                case PROMETHEUS -&gt; formatBox(&quot;Prometheus Output&quot;, state.app().adapt(TO_PROMETHEUS, m), boxWidth, MAGENTA);</span>
+            };
+<span class="nc" id="L76">            return output + &quot;\n&quot;;</span>
+        };
+    }
+
+    /**
+     * Render TUI gauges - responsive bar width.
+     */
+    private static String renderTuiGauges(SystemMetrics metrics, int boxWidth) {
+<span class="nc" id="L84">        StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L85">        int innerWidth = boxWidth - 2;</span>
+        // Gauge content: space(1) + label(4) + space(1) + bracket(1) + bar + bracket(1) + percent(5) + warn(2) + space(1) = 16 fixed
+<span class="nc" id="L87">        int barWidth = innerWidth - 16;</span>
+
+<span class="nc" id="L89">        String title = &quot;─ System Monitor &quot;;  // 17 chars</span>
+
+        // Header
+<span class="nc" id="L92">        sb.append(color(&quot;  &quot; + BOX_TOP_LEFT + title +</span>
+<span class="nc" id="L93">            repeat(BOX_HORIZONTAL, innerWidth - title.length()) + BOX_TOP_RIGHT, CYAN)).append(&quot;\n&quot;);</span>
+
+        // CPU gauge
+<span class="nc" id="L96">        sb.append(color(&quot;  &quot; + BOX_VERTICAL, CYAN))</span>
+<span class="nc" id="L97">          .append(gauge(&quot;CPU &quot;, metrics.cpu(), metrics.cpuWarning(), barWidth))</span>
+<span class="nc" id="L98">          .append(color(BOX_VERTICAL, CYAN)).append(&quot;\n&quot;);</span>
+
+        // Memory gauge
+<span class="nc" id="L101">        sb.append(color(&quot;  &quot; + BOX_VERTICAL, CYAN))</span>
+<span class="nc" id="L102">          .append(gauge(&quot;MEM &quot;, metrics.memory(), metrics.memoryWarning(), barWidth))</span>
+<span class="nc" id="L103">          .append(color(BOX_VERTICAL, CYAN)).append(&quot;\n&quot;);</span>
+
+        // Disk gauge
+<span class="nc" id="L106">        sb.append(color(&quot;  &quot; + BOX_VERTICAL, CYAN))</span>
+<span class="nc" id="L107">          .append(gauge(&quot;DISK&quot;, metrics.disk(), metrics.diskWarning(), barWidth))</span>
+<span class="nc" id="L108">          .append(color(BOX_VERTICAL, CYAN)).append(&quot;\n&quot;);</span>
+
+        // Footer
+<span class="nc" id="L111">        sb.append(color(&quot;  &quot; + BOX_BOTTOM_LEFT + repeat(BOX_HORIZONTAL, innerWidth) +</span>
+<span class="nc" id="L112">            BOX_BOTTOM_RIGHT, CYAN)).append(&quot;\n&quot;);</span>
+
+<span class="nc" id="L114">        return sb.toString();</span>
+    }
+
+    /**
+     * Build a single gauge line with color-coded bar.
+     */
+    private static String gauge(String label, double percent, boolean warning, int barWidth) {
+<span class="nc" id="L121">        int filled = (int) ((barWidth * percent) / 100);</span>
+<span class="nc" id="L122">        int empty = barWidth - filled;</span>
+
+<span class="nc bnc" id="L124" title="All 2 branches missed.">        String barColor = warning ? RED : GREEN;</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">        String warnIcon = warning ? color(&quot; ⚠&quot;, YELLOW) : &quot;  &quot;;</span>
+
+<span class="nc" id="L127">        return &quot; &quot; + color(label, BOLD) + &quot; &quot; +</span>
+<span class="nc" id="L128">            color(&quot;[&quot;, DIM) +</span>
+<span class="nc" id="L129">            color(repeat(BLOCK_FULL, filled), barColor) +</span>
+<span class="nc" id="L130">            color(repeat(BLOCK_LIGHT, empty), BRIGHT_BLACK) +</span>
+<span class="nc" id="L131">            color(&quot;]&quot;, DIM) +</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">            color(String.format(&quot; %3.0f%%&quot;, percent), warning ? RED : WHITE) +</span>
+            warnIcon + &quot; &quot;;
+    }
+
+    /**
+     * Format content in a responsive box with title.
+     */
+    private static String formatBox(String title, String content, int boxWidth, String borderColor) {
+<span class="nc" id="L140">        StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L141">        int innerWidth = boxWidth - 2;</span>
+<span class="nc" id="L142">        String titlePrefix = &quot;─ &quot; + title + &quot; &quot;;  // Calculate actual length</span>
+
+        // Top border with title
+<span class="nc" id="L145">        sb.append(color(&quot;  &quot; + BOX_TOP_LEFT + titlePrefix +</span>
+<span class="nc" id="L146">            repeat(BOX_HORIZONTAL, innerWidth - titlePrefix.length()) + BOX_TOP_RIGHT, borderColor))</span>
+<span class="nc" id="L147">          .append(&quot;\n&quot;);</span>
+
+        // Content lines: border(1) + space(1) + content + space(1) + border(1) = boxWidth
+        // So content width = boxWidth - 4 = innerWidth - 2
+<span class="nc" id="L151">        int contentWidth = innerWidth - 2;</span>
+<span class="nc bnc" id="L152" title="All 2 branches missed.">        for (String line : content.split(&quot;\n&quot;)) {</span>
+<span class="nc bnc" id="L153" title="All 2 branches missed.">            if (!line.isEmpty()) {</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">                String truncated = line.length() &gt; contentWidth</span>
+<span class="nc" id="L155">                    ? line.substring(0, Math.max(0, contentWidth - 3)) + &quot;...&quot;</span>
+<span class="nc" id="L156">                    : line;</span>
+<span class="nc" id="L157">                sb.append(color(&quot;  &quot; + BOX_VERTICAL, borderColor))</span>
+<span class="nc" id="L158">                  .append(&quot; &quot;)</span>
+<span class="nc" id="L159">                  .append(pad(truncated, contentWidth))</span>
+<span class="nc" id="L160">                  .append(&quot; &quot;)</span>
+<span class="nc" id="L161">                  .append(color(BOX_VERTICAL, borderColor))</span>
+<span class="nc" id="L162">                  .append(&quot;\n&quot;);</span>
+            }
+        }
+
+        // Bottom border
+<span class="nc" id="L167">        sb.append(color(&quot;  &quot; + BOX_BOTTOM_LEFT + repeat(BOX_HORIZONTAL, innerWidth) +</span>
+            BOX_BOTTOM_RIGHT, borderColor))
+<span class="nc" id="L169">          .append(&quot;\n&quot;);</span>
+
+<span class="nc" id="L171">        return sb.toString();</span>
+    }
+
+    /**
+     * Render the format selection menu.
+     */
+    public static View&lt;SysmonState&gt; menu() {
+<span class="nc" id="L178">        return state -&gt; {</span>
+<span class="nc" id="L179">            int boxWidth = state.width() - PADDING;</span>
+<span class="nc" id="L180">            StringBuilder sb = new StringBuilder();</span>
+
+<span class="nc" id="L182">            sb.append(color(&quot;  &quot; + repeat(BOX_HORIZONTAL, boxWidth), DIM))</span>
+<span class="nc" id="L183">              .append(&quot;\n\n&quot;);</span>
+
+            // Format options
+<span class="nc" id="L186">            sb.append(&quot;  &quot;);</span>
+<span class="nc" id="L187">            int i = 1;</span>
+<span class="nc bnc" id="L188" title="All 2 branches missed.">            for (SysmonFormat f : SysmonFormat.values()) {</span>
+<span class="nc bnc" id="L189" title="All 2 branches missed.">                String sel = f == state.format() ? &quot;●&quot; : &quot;○&quot;;</span>
+<span class="nc" id="L190">                sb.append(color(&quot;[&quot; + i + &quot;]&quot;, f.color, BOLD));</span>
+<span class="nc" id="L191">                sb.append(</span>
+<span class="nc" id="L192">                    color(</span>
+                        &quot; &quot; + sel + &quot; &quot; + f.label + &quot;  &quot;,
+<span class="nc bnc" id="L194" title="All 2 branches missed.">                        f == state.format() ? f.color : BRIGHT_BLACK</span>
+                    )
+                );
+<span class="nc" id="L197">                i++;</span>
+            }
+<span class="nc" id="L199">            sb.append(&quot;\n\n&quot;);</span>
+
+            // Other options
+<span class="nc" id="L202">            sb.append(&quot;  &quot;);</span>
+<span class="nc" id="L203">            sb.append(color(&quot;[r]&quot;, YELLOW, BOLD))</span>
+<span class="nc" id="L204">              .append(color(&quot; Refresh  &quot;, YELLOW));</span>
+<span class="nc" id="L205">            sb.append(color(&quot;[q]&quot;, BRIGHT_BLACK, BOLD))</span>
+<span class="nc" id="L206">              .append(color(&quot; Quit&quot;, BRIGHT_BLACK));</span>
+<span class="nc" id="L207">            sb.append(&quot;\n\n&quot;);</span>
+
+<span class="nc" id="L209">            return sb.toString();</span>
+        };
+    }
+
+    /**
+     * Render status message.
+     */
+    public static View&lt;SysmonState&gt; status() {
+<span class="nc" id="L217">        return state -&gt;</span>
+<span class="nc bnc" id="L218" title="All 2 branches missed.">            state.status().isEmpty()</span>
+<span class="nc" id="L219">                ? &quot;\n&quot;</span>
+<span class="nc" id="L220">                : color(</span>
+<span class="nc" id="L221">                      &quot;  &quot; + ARROW_RIGHT + &quot; &quot; + state.status(),</span>
+<span class="nc" id="L222">                      state.statusColor()</span>
+<span class="nc" id="L223">                  ) +</span>
+                  &quot;\n\n&quot;;
+    }
+
+    /**
+     * Render input prompt.
+     */
+    public static View&lt;SysmonState&gt; prompt() {
+<span class="nc" id="L231">        return state -&gt; color(&quot;  &gt; &quot;, CYAN, BOLD);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

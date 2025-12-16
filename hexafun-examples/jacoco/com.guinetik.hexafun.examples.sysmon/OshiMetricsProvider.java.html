@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>OshiMetricsProvider.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script>
+<!-- <!-- terminal-javadocs-injected [coverage] -->
+<link rel="stylesheet" href="../../terminal-styles/terminaljavadocs-coverage.min.css">
+<script src="../../terminal-styles/terminaljavadocs.min.js" defer></script>
+</head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">HexaFun Examples</a> &gt; <a href="index.source.html" class="el_package">com.guinetik.hexafun.examples.sysmon</a> &gt; <span class="el_source">OshiMetricsProvider.java</span></div><h1>OshiMetricsProvider.java</h1><pre class="source lang-java linenums">package com.guinetik.hexafun.examples.sysmon;
+
+import oshi.SystemInfo;
+import oshi.hardware.CentralProcessor;
+import oshi.hardware.GlobalMemory;
+import oshi.software.os.OSFileStore;
+
+import java.util.List;
+
+/**
+ * Cross-platform metrics provider using OSHI library.
+ *
+ * &lt;p&gt;OSHI (Operating System and Hardware Information) provides native
+ * access to system metrics on Windows, Linux, macOS, and other platforms
+ * without JNI dependencies.&lt;/p&gt;
+ *
+ * &lt;p&gt;This implementation includes WSL compatibility fixes.&lt;/p&gt;
+ */
+public class OshiMetricsProvider implements MetricsProvider {
+
+<span class="nc" id="L21">    private final SystemInfo si = new SystemInfo();</span>
+<span class="nc" id="L22">    private final CentralProcessor cpu = si.getHardware().getProcessor();</span>
+<span class="nc" id="L23">    private final GlobalMemory memory = si.getHardware().getMemory();</span>
+    private long[] prevTicks;
+
+<span class="nc" id="L26">    public OshiMetricsProvider() {</span>
+        // Prime the CPU tick counter - first reading needs baseline
+<span class="nc" id="L28">        prevTicks = cpu.getSystemCpuLoadTicks();</span>
+        try {
+<span class="nc" id="L30">            Thread.sleep(100); // Brief pause to get meaningful delta</span>
+<span class="nc" id="L31">        } catch (InterruptedException ignored) {}</span>
+<span class="nc" id="L32">        prevTicks = cpu.getSystemCpuLoadTicks();</span>
+<span class="nc" id="L33">    }</span>
+
+    @Override
+    public double getCpuUsage() {
+<span class="nc" id="L37">        double load = cpu.getSystemCpuLoadBetweenTicks(prevTicks) * 100;</span>
+<span class="nc" id="L38">        prevTicks = cpu.getSystemCpuLoadTicks();</span>
+<span class="nc" id="L39">        return Math.max(0, Math.min(100, load)); // Clamp to 0-100</span>
+    }
+
+    @Override
+    public double getMemoryUsage() {
+<span class="nc" id="L44">        long total = memory.getTotal();</span>
+<span class="nc" id="L45">        long available = memory.getAvailable();</span>
+<span class="nc bnc" id="L46" title="All 2 branches missed.">        if (total &lt;= 0) return 0;</span>
+<span class="nc" id="L47">        return ((double) (total - available) / total) * 100.0;</span>
+    }
+
+    @Override
+    public double getDiskUsage() {
+<span class="nc" id="L52">        var fs = si.getOperatingSystem().getFileSystem();</span>
+<span class="nc" id="L53">        List&lt;OSFileStore&gt; stores = fs.getFileStores();</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">        if (stores.isEmpty()) return 0;</span>
+
+        // Find the best disk: prefer root &quot;/&quot; or &quot;C:&quot; over virtual mounts
+<span class="nc" id="L57">        OSFileStore best = stores.get(0);</span>
+<span class="nc" id="L58">        long bestSize = 0;</span>
+
+<span class="nc bnc" id="L60" title="All 2 branches missed.">        for (OSFileStore store : stores) {</span>
+<span class="nc" id="L61">            String mount = store.getMount();</span>
+<span class="nc" id="L62">            long total = store.getTotalSpace();</span>
+
+            // Skip virtual/empty filesystems
+<span class="nc bnc" id="L65" title="All 2 branches missed.">            if (total &lt;= 0) continue;</span>
+
+            // Prefer root mounts
+<span class="nc bnc" id="L68" title="All 4 branches missed.">            if (&quot;/&quot;.equals(mount) || mount.matches(&quot;[A-Z]:\\\\&quot;)) {</span>
+<span class="nc" id="L69">                best = store;</span>
+<span class="nc" id="L70">                break;</span>
+            }
+
+            // Otherwise pick the largest real filesystem
+<span class="nc bnc" id="L74" title="All 6 branches missed.">            if (total &gt; bestSize &amp;&amp; !mount.startsWith(&quot;/snap&quot;) &amp;&amp; !mount.startsWith(&quot;/boot&quot;)) {</span>
+<span class="nc" id="L75">                best = store;</span>
+<span class="nc" id="L76">                bestSize = total;</span>
+            }
+<span class="nc" id="L78">        }</span>
+
+<span class="nc" id="L80">        long total = best.getTotalSpace();</span>
+<span class="nc" id="L81">        long usable = best.getUsableSpace();</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">        if (total &lt;= 0) return 0;</span>
+<span class="nc" id="L83">        return ((double) (total - usable) / total) * 100.0;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TaskApp.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script>
+<!-- <!-- terminal-javadocs-injected [coverage] -->
+<link rel="stylesheet" href="../../terminal-styles/terminaljavadocs-coverage.min.css">
+<script src="../../terminal-styles/terminaljavadocs.min.js" defer></script>
+</head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">HexaFun Examples</a> &gt; <a href="index.source.html" class="el_package">com.guinetik.hexafun.examples.tasks</a> &gt; <span class="el_source">TaskApp.java</span></div><h1>TaskApp.java</h1><pre class="source lang-java linenums">package com.guinetik.hexafun.examples.tasks;
+
+import static com.guinetik.hexafun.examples.tasks.TaskInputs.*;
+import static com.guinetik.hexafun.examples.tasks.TaskUseCases.*;
+
+import com.guinetik.hexafun.HexaApp;
+import com.guinetik.hexafun.HexaFun;
+import com.guinetik.hexafun.fun.Result;
+import java.util.List;
+
+/**
+ * Task application demonstrating the port registry feature.
+ *
+ * &lt;p&gt;Key concepts demonstrated:
+ * &lt;ul&gt;
+ *   &lt;li&gt;Port registration: {@code .withPort(TaskRepository.class, impl)}&lt;/li&gt;
+ *   &lt;li&gt;Port retrieval: {@code app.port(TaskRepository.class)}&lt;/li&gt;
+ *   &lt;li&gt;Use cases using ports for persistence&lt;/li&gt;
+ *   &lt;li&gt;Separation of domain logic from infrastructure&lt;/li&gt;
+ * &lt;/ul&gt;
+ *
+ * &lt;p&gt;The repository is injected as a port, allowing easy swapping
+ * between in-memory (for testing) and persistent implementations.
+ */
+public class TaskApp {
+
+    private final HexaApp app;
+
+    /**
+     * Create a TaskApp with the given repository implementation.
+     */
+<span class="fc" id="L32">    public TaskApp(TaskRepository repository) {</span>
+<span class="fc" id="L33">        this.app = HexaFun.dsl()</span>
+            // Register the repository as a port
+<span class="fc" id="L35">            .withPort(TaskRepository.class, repository)</span>
+            // CREATE: validate title, then save
+<span class="fc" id="L37">            .useCase(CREATE)</span>
+<span class="fc" id="L38">            .validate(TaskValidators::validateCreateTitle)</span>
+<span class="fc" id="L39">            .validate(TaskValidators::validateCreateTitleLength)</span>
+<span class="fc" id="L40">            .handle(input -&gt; {</span>
+<span class="fc" id="L41">                Task task = Task.create(input.title(), input.description());</span>
+<span class="fc" id="L42">                return Result.ok(repository.save(task));</span>
+            })
+            // START: validate ID, find task, move to DOING
+<span class="fc" id="L45">            .useCase(START)</span>
+<span class="fc" id="L46">            .validate(TaskValidators::validateStartTaskId)</span>
+<span class="fc" id="L47">            .handle(input -&gt;</span>
+                repository
+<span class="nc" id="L49">                    .findById(input.taskId())</span>
+<span class="nc" id="L50">                    .map(task -&gt; Result.ok(repository.save(task.start())))</span>
+<span class="nc" id="L51">                    .orElse(Result.fail(&quot;Task not found: &quot; + input.taskId()))</span>
+            )
+            // COMPLETE: validate ID, find task, move to DONE
+<span class="fc" id="L54">            .useCase(COMPLETE)</span>
+<span class="fc" id="L55">            .validate(TaskValidators::validateCompleteTaskId)</span>
+<span class="fc" id="L56">            .handle(input -&gt;</span>
+                repository
+<span class="fc" id="L58">                    .findById(input.taskId())</span>
+<span class="fc" id="L59">                    .map(task -&gt; Result.ok(repository.save(task.complete())))</span>
+<span class="fc" id="L60">                    .orElse(Result.fail(&quot;Task not found: &quot; + input.taskId()))</span>
+            )
+            // UPDATE: validate ID and title, find and update
+<span class="fc" id="L63">            .useCase(UPDATE)</span>
+<span class="fc" id="L64">            .validate(TaskValidators::validateUpdateTaskId)</span>
+<span class="fc" id="L65">            .validate(TaskValidators::validateUpdateTitle)</span>
+<span class="fc" id="L66">            .handle(input -&gt;</span>
+                repository
+<span class="fc" id="L68">                    .findById(input.taskId())</span>
+<span class="fc" id="L69">                    .map(task -&gt; {</span>
+<span class="fc" id="L70">                        Task updated = task</span>
+<span class="fc" id="L71">                            .withTitle(input.title())</span>
+<span class="fc" id="L72">                            .withDescription(input.description());</span>
+<span class="fc" id="L73">                        return Result.ok(repository.save(updated));</span>
+                    })
+<span class="fc" id="L75">                    .orElse(Result.fail(&quot;Task not found: &quot; + input.taskId()))</span>
+            )
+            // DELETE: validate ID, delete from repo
+<span class="fc" id="L78">            .useCase(DELETE)</span>
+<span class="fc" id="L79">            .validate(TaskValidators::validateDeleteTaskId)</span>
+<span class="fc" id="L80">            .handle(input -&gt; Result.ok(repository.delete(input.taskId())))</span>
+            // FIND: validate ID, look up in repo
+<span class="fc" id="L82">            .useCase(FIND)</span>
+<span class="fc" id="L83">            .validate(TaskValidators::validateFindTaskId)</span>
+<span class="fc" id="L84">            .handle(input -&gt;</span>
+                repository
+<span class="fc" id="L86">                    .findById(input.taskId())</span>
+<span class="fc" id="L87">                    .map(Result::ok)</span>
+<span class="fc" id="L88">                    .orElse(Result.fail(&quot;Task not found: &quot; + input.taskId()))</span>
+            )
+            // LIST: no validation needed, just return all
+<span class="fc" id="L91">            .useCase(LIST)</span>
+<span class="fc" id="L92">            .handle(input -&gt; repository.findAll())</span>
+<span class="fc" id="L93">            .build();</span>
+<span class="fc" id="L94">    }</span>
+
+    /**
+     * Create a TaskApp with an in-memory repository.
+     */
+    public static TaskApp withInMemoryRepo() {
+<span class="nc" id="L100">        return new TaskApp(new InMemoryTaskRepository());</span>
+    }
+
+    // ----- Public API -----
+
+    public Result&lt;Task&gt; createTask(String title, String description) {
+<span class="fc" id="L106">        return app.invoke(CREATE, new CreateTask(title, description));</span>
+    }
+
+    public Result&lt;Task&gt; startTask(String taskId) {
+<span class="nc" id="L110">        return app.invoke(START, new StartTask(taskId));</span>
+    }
+
+    public Result&lt;Task&gt; completeTask(String taskId) {
+<span class="fc" id="L114">        return app.invoke(COMPLETE, new CompleteTask(taskId));</span>
+    }
+
+    public Result&lt;Task&gt; updateTask(
+        String taskId,
+        String title,
+        String description
+    ) {
+<span class="fc" id="L122">        return app.invoke(UPDATE, new UpdateTask(taskId, title, description));</span>
+    }
+
+    public Result&lt;Boolean&gt; deleteTask(String taskId) {
+<span class="fc" id="L126">        return app.invoke(DELETE, new DeleteTask(taskId));</span>
+    }
+
+    public Result&lt;Task&gt; findTask(String taskId) {
+<span class="fc" id="L130">        return app.invoke(FIND, new FindTask(taskId));</span>
+    }
+
+    public List&lt;Task&gt; listTasks() {
+<span class="fc" id="L134">        return app.invoke(LIST, null);</span>
+    }
+
+    /**
+     * Get the underlying HexaApp (for testing/introspection).
+     */
+    public HexaApp getApp() {
+<span class="fc" id="L141">        return app;</span>
+    }
+
+    /**
+     * Get the repository port directly.
+     */
+    public TaskRepository getRepository() {
+<span class="fc" id="L148">        return app.port(TaskRepository.class);</span>
+    }
+
+    // ----- Demo -----
+
+    public static void main(String[] args) {
+<span class="nc" id="L154">        System.out.println(&quot;=== TaskApp Demo ===\n&quot;);</span>
+
+        // Create app with in-memory repository
+<span class="nc" id="L157">        TaskApp taskApp = TaskApp.withInMemoryRepo();</span>
+
+        // Show that the port is registered
+<span class="nc" id="L160">        System.out.println(</span>
+<span class="nc" id="L161">            &quot;Registered ports: &quot; + taskApp.getApp().registeredPorts()</span>
+        );
+<span class="nc" id="L163">        System.out.println(</span>
+            &quot;Has TaskRepository: &quot; +
+<span class="nc" id="L165">                taskApp.getApp().hasPort(TaskRepository.class)</span>
+        );
+<span class="nc" id="L167">        System.out.println();</span>
+
+        // Create some tasks
+<span class="nc" id="L170">        System.out.println(&quot;Creating tasks...&quot;);</span>
+<span class="nc" id="L171">        Result&lt;Task&gt; task1 = taskApp.createTask(</span>
+            &quot;Learn HexaFun&quot;,
+            &quot;Study the fluent DSL&quot;
+        );
+<span class="nc" id="L175">        Result&lt;Task&gt; task2 = taskApp.createTask(</span>
+            &quot;Write tests&quot;,
+            &quot;Add comprehensive tests&quot;
+        );
+<span class="nc" id="L179">        Result&lt;Task&gt; task3 = taskApp.createTask(</span>
+            &quot;Deploy app&quot;,
+            &quot;Push to production&quot;
+        );
+
+<span class="nc" id="L184">        System.out.println(&quot;Created: &quot; + task1.get().title());</span>
+<span class="nc" id="L185">        System.out.println(&quot;Created: &quot; + task2.get().title());</span>
+<span class="nc" id="L186">        System.out.println(&quot;Created: &quot; + task3.get().title());</span>
+<span class="nc" id="L187">        System.out.println();</span>
+
+        // List all tasks
+<span class="nc" id="L190">        System.out.println(&quot;All tasks:&quot;);</span>
+<span class="nc" id="L191">        taskApp</span>
+<span class="nc" id="L192">            .listTasks()</span>
+<span class="nc" id="L193">            .forEach(t -&gt;</span>
+<span class="nc" id="L194">                System.out.println(</span>
+<span class="nc bnc" id="L195" title="All 2 branches missed.">                    &quot;  - [&quot; + (t.completed() ? &quot;X&quot; : &quot; &quot;) + &quot;] &quot; + t.title()</span>
+                )
+            );
+<span class="nc" id="L198">        System.out.println();</span>
+
+        // Complete a task
+<span class="nc" id="L201">        String taskId = task1.get().id();</span>
+<span class="nc" id="L202">        System.out.println(&quot;Completing task: &quot; + task1.get().title());</span>
+<span class="nc" id="L203">        taskApp.completeTask(taskId);</span>
+<span class="nc" id="L204">        System.out.println();</span>
+
+        // List again to see the change
+<span class="nc" id="L207">        System.out.println(&quot;Tasks after completion:&quot;);</span>
+<span class="nc" id="L208">        taskApp</span>
+<span class="nc" id="L209">            .listTasks()</span>
+<span class="nc" id="L210">            .forEach(t -&gt;</span>
+<span class="nc" id="L211">                System.out.println(</span>
+<span class="nc bnc" id="L212" title="All 2 branches missed.">                    &quot;  - [&quot; + (t.completed() ? &quot;X&quot; : &quot; &quot;) + &quot;] &quot; + t.title()</span>
+                )
+            );
+<span class="nc" id="L215">        System.out.println();</span>
+
+        // Try validation - empty title
+<span class="nc" id="L218">        System.out.println(&quot;Trying to create task with empty title...&quot;);</span>
+<span class="nc" id="L219">        Result&lt;Task&gt; invalid = taskApp.createTask(&quot;&quot;, &quot;No title&quot;);</span>
+<span class="nc" id="L220">        System.out.println(</span>
+            &quot;Result: &quot; +
+<span class="nc bnc" id="L222" title="All 2 branches missed.">                (invalid.isSuccess() ? &quot;OK&quot; : &quot;FAILED: &quot; + invalid.error())</span>
+        );
+<span class="nc" id="L224">        System.out.println();</span>
+
+        // Try validation - title too long
+<span class="nc" id="L227">        System.out.println(&quot;Trying to create task with very long title...&quot;);</span>
+<span class="nc" id="L228">        String longTitle = &quot;A&quot;.repeat(101);</span>
+<span class="nc" id="L229">        Result&lt;Task&gt; tooLong = taskApp.createTask(longTitle, &quot;Too long&quot;);</span>
+<span class="nc" id="L230">        System.out.println(</span>
+            &quot;Result: &quot; +
+<span class="nc bnc" id="L232" title="All 2 branches missed.">                (tooLong.isSuccess() ? &quot;OK&quot; : &quot;FAILED: &quot; + tooLong.error())</span>
+        );
+<span class="nc" id="L234">        System.out.println();</span>
+
+        // Find a task
+<span class="nc" id="L237">        System.out.println(&quot;Finding task by ID: &quot; + taskId);</span>
+<span class="nc" id="L238">        Result&lt;Task&gt; found = taskApp.findTask(taskId);</span>
+<span class="nc" id="L239">        System.out.println(</span>
+            &quot;Found: &quot; +
+<span class="nc" id="L241">                found.get().title() +</span>
+                &quot; (completed: &quot; +
+<span class="nc" id="L243">                found.get().completed() +</span>
+                &quot;)&quot;
+        );
+<span class="nc" id="L246">        System.out.println();</span>
+
+        // Delete a task
+<span class="nc" id="L249">        System.out.println(&quot;Deleting task: &quot; + task3.get().title());</span>
+<span class="nc" id="L250">        taskApp.deleteTask(task3.get().id());</span>
+<span class="nc" id="L251">        System.out.println(&quot;Tasks remaining: &quot; + taskApp.listTasks().size());</span>
+<span class="nc" id="L252">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UseCaseKey.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script>
+<!-- <!-- terminal-javadocs-injected [coverage] -->
+<link rel="stylesheet" href="../../terminal-styles/terminaljavadocs-coverage.min.css">
+<script src="../../terminal-styles/terminaljavadocs.min.js" defer></script>
+</head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">HexaFun Core</a> &gt; <a href="index.source.html" class="el_package">com.guinetik.hexafun.hexa</a> &gt; <span class="el_source">UseCaseKey.java</span></div><h1>UseCaseKey.java</h1><pre class="source lang-java linenums">package com.guinetik.hexafun.hexa;
+
+import java.util.Objects;
+
+/**
+ * Type-safe key for use case registration and invocation.
+ * Provides compile-time type checking instead of string-based dispatch.
+ *
+ * &lt;p&gt;Usage:
+ * &lt;pre class=&quot;language-java&quot;&gt;{@code
+ * // Define keys as constants
+ * public interface MyUseCases {
+ *     UseCaseKey&lt;CreateInput, Result&lt;Entity&gt;&gt; CREATE = UseCaseKey.of(&quot;create&quot;);
+ *     UseCaseKey&lt;String, Result&lt;Entity&gt;&gt; FIND = UseCaseKey.of(&quot;find&quot;);
+ * }
+ *
+ * // Use in DSL
+ * HexaFun.dsl()
+ *     .useCase(MyUseCases.CREATE)
+ *         .validate(...)
+ *         .handle(...)
+ *     .build();
+ *
+ * // Type-safe invocation
+ * Result&lt;Entity&gt; result = app.invoke(MyUseCases.CREATE, input);
+ * }&lt;/pre&gt;
+ *
+ * @param &lt;I&gt; The input type of the use case
+ * @param &lt;O&gt; The output type of the use case
+ */
+public final class UseCaseKey&lt;I, O&gt; {
+
+    private final String name;
+
+<span class="fc" id="L35">    private UseCaseKey(String name) {</span>
+<span class="fc" id="L36">        this.name = Objects.requireNonNull(</span>
+            name,
+            &quot;Use case name cannot be null&quot;
+        );
+<span class="fc" id="L40">    }</span>
+
+    /**
+     * Create a new type-safe use case key.
+     *
+     * @param name The unique name for this use case
+     * @param &lt;I&gt; The input type
+     * @param &lt;O&gt; The output type
+     * @return A new UseCaseKey instance
+     */
+    public static &lt;I, O&gt; UseCaseKey&lt;I, O&gt; of(String name) {
+<span class="fc" id="L51">        return new UseCaseKey&lt;&gt;(name);</span>
+    }
+
+    /**
+     * Get the string name of this use case key.
+     * @return The use case name
+     */
+    public String name() {
+<span class="fc" id="L59">        return name;</span>
+    }
+
+    @Override
+    public boolean equals(Object o) {
+<span class="pc bpc" id="L64" title="1 of 2 branches missed.">        if (this == o) return true;</span>
+<span class="pc bpc" id="L65" title="2 of 4 branches missed.">        if (o == null || getClass() != o.getClass()) return false;</span>
+<span class="fc" id="L66">        UseCaseKey&lt;?, ?&gt; that = (UseCaseKey&lt;?, ?&gt;) o;</span>
+<span class="fc" id="L67">        return name.equals(that.name);</span>
+    }
+
+    @Override
+    public int hashCode() {
+<span class="fc" id="L72">        return name.hashCode();</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="fc" id="L77">        return &quot;UseCaseKey(&quot; + name + &quot;)&quot;;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

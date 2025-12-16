@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UseCaseHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script>
+<!-- <!-- terminal-javadocs-injected [coverage] -->
+<link rel="stylesheet" href="../../terminal-styles/terminaljavadocs-coverage.min.css">
+<script src="../../terminal-styles/terminaljavadocs.min.js" defer></script>
+</head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">HexaFun Core</a> &gt; <a href="index.source.html" class="el_package">com.guinetik.hexafun.hexa</a> &gt; <span class="el_source">UseCaseHandler.java</span></div><h1>UseCaseHandler.java</h1><pre class="source lang-java linenums">package com.guinetik.hexafun.hexa;
+
+import com.guinetik.hexafun.HexaApp;
+
+/**
+ * Abstract base class for use case handlers that need access to ports.
+ *
+ * &lt;p&gt;This class provides a convenient way to implement use cases that require
+ * infrastructure dependencies (ports) while maintaining the functional interface
+ * contract of {@link UseCase}.&lt;/p&gt;
+ *
+ * &lt;h2&gt;When to use UseCaseHandler&lt;/h2&gt;
+ * &lt;ul&gt;
+ *   &lt;li&gt;When your use case needs to access repositories, external services, or other ports&lt;/li&gt;
+ *   &lt;li&gt;When you want to externalize handler logic into dedicated classes&lt;/li&gt;
+ *   &lt;li&gt;When handlers need to be tested with different port implementations&lt;/li&gt;
+ * &lt;/ul&gt;
+ *
+ * &lt;h2&gt;When to use lambdas instead&lt;/h2&gt;
+ * &lt;ul&gt;
+ *   &lt;li&gt;For simple, pure transformations with no port dependencies&lt;/li&gt;
+ *   &lt;li&gt;For one-liner handlers that don't need testing in isolation&lt;/li&gt;
+ * &lt;/ul&gt;
+ *
+ * &lt;h2&gt;Example&lt;/h2&gt;
+ * &lt;pre class=&quot;language-java&quot;&gt;{@code
+ * public class CreateTaskHandler extends UseCaseHandler&lt;CreateTask, Result&lt;Task&gt;&gt; {
+ *     public CreateTaskHandler(HexaApp app) {
+ *         super(app);
+ *     }
+ *
+ *     @Override
+ *     public Result&lt;Task&gt; apply(CreateTask input) {
+ *         TaskRepository repo = port(TaskRepository.class);
+ *         Task task = Task.create(input.title());
+ *         return Result.ok(repo.save(task));
+ *     }
+ * }
+ *
+ * // Registration
+ * HexaApp app = HexaFun.dsl()
+ *     .port(TaskRepository.class, new InMemoryTaskRepo())
+ *     .useCase(CREATE_TASK)
+ *         .handle(new CreateTaskHandler(app))
+ *     .build();
+ * }&lt;/pre&gt;
+ *
+ * @param &lt;I&gt; The input type for this use case
+ * @param &lt;O&gt; The output type for this use case
+ * @see UseCase
+ * @see HexaApp#port(Class)
+ */
+public abstract class UseCaseHandler&lt;I, O&gt; implements UseCase&lt;I, O&gt; {
+
+    /**
+     * Reference to the HexaApp for port access.
+     */
+    protected final HexaApp app;
+
+    /**
+     * Creates a new handler with access to the given HexaApp.
+     *
+     * @param app The HexaApp instance for port access
+     */
+<span class="nc" id="L65">    protected UseCaseHandler(HexaApp app) {</span>
+<span class="nc" id="L66">        this.app = app;</span>
+<span class="nc" id="L67">    }</span>
+
+    /**
+     * Convenience method to retrieve a port by its type.
+     *
+     * &lt;p&gt;This is a shorthand for {@code app.port(type)}.&lt;/p&gt;
+     *
+     * @param type The interface/class type to retrieve
+     * @param &lt;T&gt; The port type
+     * @return The registered implementation
+     * @throws IllegalArgumentException if no port is registered for the given type
+     */
+    protected &lt;T&gt; T port(Class&lt;T&gt; type) {
+<span class="nc" id="L80">        return app.port(type);</span>
+    }
+
+    /**
+     * Check if a port is registered for the given type.
+     *
+     * @param type The interface/class type to check
+     * @return true if a port is registered, false otherwise
+     */
+    protected boolean hasPort(Class&lt;?&gt; type) {
+<span class="nc" id="L90">        return app.hasPort(type);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

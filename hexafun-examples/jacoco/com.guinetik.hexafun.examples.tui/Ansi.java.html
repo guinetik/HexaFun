@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Ansi.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script>
+<!-- <!-- terminal-javadocs-injected [coverage] -->
+<link rel="stylesheet" href="../../terminal-styles/terminaljavadocs-coverage.min.css">
+<script src="../../terminal-styles/terminaljavadocs.min.js" defer></script>
+</head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">HexaFun Examples</a> &gt; <a href="index.source.html" class="el_package">com.guinetik.hexafun.examples.tui</a> &gt; <span class="el_source">Ansi.java</span></div><h1>Ansi.java</h1><pre class="source lang-java linenums">package com.guinetik.hexafun.examples.tui;
+
+/**
+ * ANSI escape code utilities for terminal styling.
+ * No external dependencies - pure Java terminal control.
+ *
+ * &lt;p&gt;Usage:
+ * &lt;pre class=&quot;language-java&quot;&gt;{@code
+ * import static com.guinetik.hexafun.examples.tui.Ansi.*;
+ *
+ * System.out.println(color(&quot;Hello&quot;, GREEN, BOLD));
+ * System.out.println(color(center(&quot;Title&quot;, 40), BG_BLUE, WHITE));
+ * }&lt;/pre&gt;
+ */
+public final class Ansi {
+
+    private Ansi() {}
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  TEXT STYLES
+    // ═══════════════════════════════════════════════════════════════════
+
+    public static final String RESET = &quot;\u001B[0m&quot;;
+    public static final String BOLD = &quot;\u001B[1m&quot;;
+    public static final String DIM = &quot;\u001B[2m&quot;;
+    public static final String ITALIC = &quot;\u001B[3m&quot;;
+    public static final String UNDERLINE = &quot;\u001B[4m&quot;;
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  FOREGROUND COLORS
+    // ═══════════════════════════════════════════════════════════════════
+
+    public static final String BLACK = &quot;\u001B[30m&quot;;
+    public static final String RED = &quot;\u001B[31m&quot;;
+    public static final String GREEN = &quot;\u001B[32m&quot;;
+    public static final String YELLOW = &quot;\u001B[33m&quot;;
+    public static final String BLUE = &quot;\u001B[34m&quot;;
+    public static final String MAGENTA = &quot;\u001B[35m&quot;;
+    public static final String CYAN = &quot;\u001B[36m&quot;;
+    public static final String WHITE = &quot;\u001B[37m&quot;;
+
+    // Bright variants
+    public static final String BRIGHT_BLACK = &quot;\u001B[90m&quot;;
+    public static final String BRIGHT_RED = &quot;\u001B[91m&quot;;
+    public static final String BRIGHT_GREEN = &quot;\u001B[92m&quot;;
+    public static final String BRIGHT_YELLOW = &quot;\u001B[93m&quot;;
+    public static final String BRIGHT_BLUE = &quot;\u001B[94m&quot;;
+    public static final String BRIGHT_MAGENTA = &quot;\u001B[95m&quot;;
+    public static final String BRIGHT_CYAN = &quot;\u001B[96m&quot;;
+    public static final String BRIGHT_WHITE = &quot;\u001B[97m&quot;;
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  BACKGROUND COLORS
+    // ═══════════════════════════════════════════════════════════════════
+
+    public static final String BG_BLACK = &quot;\u001B[40m&quot;;
+    public static final String BG_RED = &quot;\u001B[41m&quot;;
+    public static final String BG_GREEN = &quot;\u001B[42m&quot;;
+    public static final String BG_YELLOW = &quot;\u001B[43m&quot;;
+    public static final String BG_BLUE = &quot;\u001B[44m&quot;;
+    public static final String BG_MAGENTA = &quot;\u001B[45m&quot;;
+    public static final String BG_CYAN = &quot;\u001B[46m&quot;;
+    public static final String BG_WHITE = &quot;\u001B[47m&quot;;
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  CURSOR &amp; SCREEN CONTROL
+    // ═══════════════════════════════════════════════════════════════════
+
+    public static final String CLEAR_SCREEN = &quot;\u001B[2J&quot;;
+    public static final String CLEAR = CLEAR_SCREEN;
+    public static final String CURSOR_HOME = &quot;\u001B[H&quot;;
+    public static final String HIDE_CURSOR = &quot;\u001B[?25l&quot;;
+    public static final String SHOW_CURSOR = &quot;\u001B[?25h&quot;;
+
+    // Alternate screen buffer (doesn't pollute scrollback)
+    public static final String ALT_SCREEN_ON = &quot;\u001B[?1049h&quot;;
+    public static final String ALT_SCREEN_OFF = &quot;\u001B[?1049l&quot;;
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  BOX DRAWING - UNICODE
+    // ═══════════════════════════════════════════════════════════════════
+
+    // Single line
+    public static final String BOX_TOP_LEFT = &quot;\u250C&quot;; // ┌
+    public static final String BOX_TOP_RIGHT = &quot;\u2510&quot;; // ┐
+    public static final String BOX_BOTTOM_LEFT = &quot;\u2514&quot;; // └
+    public static final String BOX_BOTTOM_RIGHT = &quot;\u2518&quot;; // ┘
+    public static final String BOX_HORIZONTAL = &quot;\u2500&quot;; // ─
+    public static final String BOX_VERTICAL = &quot;\u2502&quot;; // │
+    public static final String BOX_T_DOWN = &quot;\u252C&quot;; // ┬
+    public static final String BOX_T_UP = &quot;\u2534&quot;; // ┴
+    public static final String BOX_T_RIGHT = &quot;\u251C&quot;; // ├
+    public static final String BOX_T_LEFT = &quot;\u2524&quot;; // ┤
+    public static final String BOX_CROSS = &quot;\u253C&quot;; // ┼
+
+    // Double line
+    public static final String DBOX_TOP_LEFT = &quot;\u2554&quot;; // ╔
+    public static final String DBOX_TOP_RIGHT = &quot;\u2557&quot;; // ╗
+    public static final String DBOX_BOTTOM_LEFT = &quot;\u255A&quot;; // ╚
+    public static final String DBOX_BOTTOM_RIGHT = &quot;\u255D&quot;; // ╝
+    public static final String DBOX_HORIZONTAL = &quot;\u2550&quot;; // ═
+    public static final String DBOX_VERTICAL = &quot;\u2551&quot;; // ║
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  NERDFONT SYMBOLS
+    // ═══════════════════════════════════════════════════════════════════
+
+    // Common symbols
+    public static final String CHECK = &quot;\uEAB2&quot;; // nf-cod-check
+    public static final String CROSS = &quot;\uEA76&quot;; // nf-cod-close
+    public static final String BULLET = &quot;\uEABC&quot;; // nf-cod-circle
+    public static final String ARROW_RIGHT = &quot;\uEA9C&quot;; // nf-cod-arrow_right
+    public static final String ARROW_LEFT = &quot;\uEA9B&quot;; // nf-cod-arrow_left
+    public static final String STAR = &quot;\uF005&quot;; // nf-fa-star
+    public static final String EMPTY_STAR = &quot;\uEA6A&quot;; // nf-cod-star_empty
+
+    // Icons
+    public static final String ICON_TASK = &quot;\uEB67&quot;; // nf-cod-tasklist
+    public static final String ICON_DASHBOARD = &quot;\uEACD&quot;; // nf-cod-dashboard
+    public static final String ICON_ADD = &quot;\uEA60&quot;; // nf-cod-add
+    public static final String ICON_TRASH = &quot;\uEA81&quot;; // nf-cod-trash
+    public static final String ICON_CHECK_ALL = &quot;\uEBB1&quot;; // nf-cod-check_all
+    public static final String ICON_INBOX = &quot;\uEB09&quot;; // nf-cod-inbox
+    public static final String ICON_FOLDER = &quot;\uEA83&quot;; // nf-cod-folder
+    public static final String ICON_FLAME = &quot;\uEAF2&quot;; // nf-cod-flame
+    public static final String ICON_GEAR = &quot;\uEAF8&quot;; // nf-cod-gear
+    public static final String ICON_EYE = &quot;\uEAE5&quot;; // nf-cod-eye
+    public static final String ICON_INFO = &quot;\uEAFC&quot;; // nf-cod-info
+    public static final String ICON_EDIT = &quot;\uEA73&quot;; // nf-cod-edit
+    public static final String ICON_SEARCH = &quot;\uEA6D&quot;; // nf-cod-search
+    public static final String ICON_HOME = &quot;\uEAF0&quot;; // nf-cod-home
+    public static final String ICON_TERMINAL = &quot;\uEA85&quot;; // nf-cod-terminal
+
+    // Progress bar blocks
+    public static final String BLOCK_FULL = &quot;\u2588&quot;; // █
+    public static final String BLOCK_LIGHT = &quot;\u2591&quot;; // ░
+    public static final String BLOCK_MED = &quot;\u2592&quot;; // ▒
+    public static final String BLOCK_DARK = &quot;\u2593&quot;; // ▓
+
+    // Powerline separators
+    public static final String PL_LEFT = &quot;\uE0B0&quot;; // nf-pl-left_hard_divider
+    public static final String PL_RIGHT = &quot;\uE0B2&quot;; // nf-pl-right_hard_divider
+    public static final String PL_LEFT_SOFT = &quot;\uE0B1&quot;; // nf-pl-left_soft_divider
+    public static final String PL_RIGHT_SOFT = &quot;\uE0B3&quot;; // nf-pl-right_soft_divider
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  HELPER METHODS
+    // ═══════════════════════════════════════════════════════════════════
+
+    /** Apply ANSI codes to text with auto-reset */
+    public static String color(String text, String... codes) {
+<span class="nc bnc" id="L152" title="All 2 branches missed.">        if (codes.length == 0) return text;</span>
+<span class="nc" id="L153">        StringBuilder sb = new StringBuilder();</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">        for (String code : codes) {</span>
+<span class="nc" id="L155">            sb.append(code);</span>
+        }
+<span class="nc" id="L157">        return sb.append(text).append(RESET).toString();</span>
+    }
+
+    /** Bold text shorthand */
+    public static String bold(String text) {
+<span class="nc" id="L162">        return BOLD + text + RESET;</span>
+    }
+
+    /** Dim text shorthand */
+    public static String dim(String text) {
+<span class="nc" id="L167">        return DIM + text + RESET;</span>
+    }
+
+    /** Clear screen (side effect) */
+    public static void clear() {
+<span class="nc" id="L172">        System.out.print(CLEAR_SCREEN + CURSOR_HOME);</span>
+<span class="nc" id="L173">        System.out.flush();</span>
+<span class="nc" id="L174">    }</span>
+
+    /** Hide cursor (side effect) */
+    public static void hideCursor() {
+<span class="nc" id="L178">        System.out.print(HIDE_CURSOR);</span>
+<span class="nc" id="L179">        System.out.flush();</span>
+<span class="nc" id="L180">    }</span>
+
+    /** Show cursor (side effect) */
+    public static void showCursor() {
+<span class="nc" id="L184">        System.out.print(SHOW_CURSOR);</span>
+<span class="nc" id="L185">        System.out.flush();</span>
+<span class="nc" id="L186">    }</span>
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  STRING UTILITIES
+    // ═══════════════════════════════════════════════════════════════════
+
+    /** Repeat a character n times */
+    public static String repeat(char c, int count) {
+<span class="nc" id="L194">        return String.valueOf(c).repeat(Math.max(0, count));</span>
+    }
+
+    /** Repeat a string n times */
+    public static String repeat(String s, int count) {
+<span class="nc" id="L199">        return s.repeat(Math.max(0, count));</span>
+    }
+
+    /** Right-pad string to width */
+    public static String pad(String text, int width) {
+<span class="nc bnc" id="L204" title="All 2 branches missed.">        if (text.length() &gt;= width) {</span>
+<span class="nc" id="L205">            return text.substring(0, width);</span>
+        }
+<span class="nc" id="L207">        return text + &quot; &quot;.repeat(width - text.length());</span>
+    }
+
+    /** Left-pad string to width */
+    public static String padLeft(String text, int width) {
+<span class="nc bnc" id="L212" title="All 2 branches missed.">        if (text.length() &gt;= width) {</span>
+<span class="nc" id="L213">            return text.substring(0, width);</span>
+        }
+<span class="nc" id="L215">        return &quot; &quot;.repeat(width - text.length()) + text;</span>
+    }
+
+    /** Center string within width */
+    public static String center(String text, int width) {
+<span class="nc bnc" id="L220" title="All 2 branches missed.">        if (text.length() &gt;= width) {</span>
+<span class="nc" id="L221">            return text.substring(0, width);</span>
+        }
+<span class="nc" id="L223">        int padding = (width - text.length()) / 2;</span>
+<span class="nc" id="L224">        return (</span>
+<span class="nc" id="L225">            &quot; &quot;.repeat(padding) +</span>
+            text +
+<span class="nc" id="L227">            &quot; &quot;.repeat(width - text.length() - padding)</span>
+        );
+    }
+
+    /** Truncate string with ellipsis if too long */
+    public static String truncate(String text, int maxWidth) {
+<span class="nc bnc" id="L233" title="All 2 branches missed.">        if (text.length() &lt;= maxWidth) return text;</span>
+<span class="nc" id="L234">        return text.substring(0, Math.max(0, maxWidth - 3)) + &quot;...&quot;;</span>
+    }
+
+    /** Join strings with newlines */
+    public static String lines(String... lines) {
+<span class="nc" id="L239">        return String.join(&quot;\n&quot;, lines) + &quot;\n&quot;;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

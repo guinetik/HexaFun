@@ -1,0 +1,996 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TasksTUI.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script>
+<!-- <!-- terminal-javadocs-injected [coverage] -->
+<link rel="stylesheet" href="../../terminal-styles/terminaljavadocs-coverage.min.css">
+<script src="../../terminal-styles/terminaljavadocs.min.js" defer></script>
+</head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">HexaFun Examples</a> &gt; <a href="index.source.html" class="el_package">com.guinetik.hexafun.examples.tasks.tui</a> &gt; <span class="el_source">TasksTUI.java</span></div><h1>TasksTUI.java</h1><pre class="source lang-java linenums">package com.guinetik.hexafun.examples.tasks.tui;
+
+import static com.guinetik.hexafun.examples.tui.Ansi.*;
+
+import com.guinetik.hexafun.examples.tasks.Task;
+import com.guinetik.hexafun.examples.tasks.TaskApp;
+import com.guinetik.hexafun.examples.tasks.TaskStatus;
+import com.guinetik.hexafun.examples.tui.HexaTerminal;
+import com.guinetik.hexafun.examples.tui.View;
+import com.guinetik.hexafun.examples.tui.Widgets;
+import com.guinetik.hexafun.fun.Result;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.util.List;
+import java.util.function.Function;
+import java.util.function.UnaryOperator;
+
+/**
+ * Functional TUI for the Tasks application.
+ *
+ * &lt;p&gt;Demonstrates functional composition in a terminal UI using the
+ * shared {@link com.guinetik.hexafun.examples.tui} package:
+ * &lt;ul&gt;
+ *   &lt;li&gt;{@link State} - Immutable state record&lt;/li&gt;
+ *   &lt;li&gt;{@link View} - Pure function S → String (from shared tui package)&lt;/li&gt;
+ *   &lt;li&gt;{@link Views} - Composable view components&lt;/li&gt;
+ *   &lt;li&gt;{@link Widgets} - Reusable TUI widgets (from shared tui package)&lt;/li&gt;
+ *   &lt;li&gt;Single {@link #render(State)} side effect&lt;/li&gt;
+ * &lt;/ul&gt;
+ *
+ * &lt;p&gt;The pattern: {@code render(views.screen().apply(state))}
+ */
+public class TasksTUI {
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  IMMUTABLE STATE
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Immutable TUI state. All state transitions return new State instances.
+     */
+<span class="nc" id="L42">    public record State(</span>
+        TaskApp app,
+        int width,
+        String status,
+        String statusColor,
+        boolean running
+    ) {
+        private static final int MIN_WIDTH = 60;
+        private static final int KANBAN_MIN_WIDTH = 80;
+
+        /** Create initial state */
+        public static State initial(TaskApp app) {
+<span class="nc" id="L54">            return new State(app, detectWidth(), &quot;&quot;, GREEN, true);</span>
+        }
+
+        /** State transitions - all return new State */
+        public State withStatus(String msg, String color) {
+<span class="nc" id="L59">            return new State(app, width, msg, color, running);</span>
+        }
+
+        public State withWidth(int w) {
+<span class="nc" id="L63">            return new State(</span>
+                app,
+<span class="nc" id="L65">                Math.max(MIN_WIDTH, w),</span>
+                status,
+                statusColor,
+                running
+            );
+        }
+
+        public State refreshWidth() {
+<span class="nc" id="L73">            return withWidth(detectWidth());</span>
+        }
+
+        public State stop() {
+<span class="nc" id="L77">            return new State(app, width, &quot;Goodbye!&quot;, CYAN, false);</span>
+        }
+
+        /** Derived state */
+        public boolean isKanban() {
+<span class="nc bnc" id="L82" title="All 2 branches missed.">            return width &gt;= KANBAN_MIN_WIDTH;</span>
+        }
+
+        public List&lt;Task&gt; tasks() {
+<span class="nc" id="L86">            return app.listTasks();</span>
+        }
+
+        public List&lt;Task&gt; byStatus(TaskStatus s) {
+<span class="nc" id="L90">            return tasks()</span>
+<span class="nc" id="L91">                .stream()</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">                .filter(t -&gt; t.status() == s)</span>
+<span class="nc" id="L93">                .toList();</span>
+        }
+
+        /** Terminal width detection - delegates to shared Terminal utility */
+        private static int detectWidth() {
+<span class="nc" id="L98">            return HexaTerminal.detectWidth(MIN_WIDTH, 120);</span>
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  VIEWS - PURE VIEW COMPONENTS (using shared View&lt;S&gt; interface)
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Pure view functions using the shared {@link View} interface.
+     * Each transforms State → String with no side effects.
+     */
+<span class="nc" id="L110">    public static class Views {</span>
+
+        /** The complete screen - composed from all views */
+        public static View&lt;State&gt; screen() {
+<span class="nc" id="L114">            return clear()</span>
+<span class="nc" id="L115">                .andThen(header())</span>
+<span class="nc" id="L116">                .andThen(stats())</span>
+<span class="nc" id="L117">                .andThen(View.when(State::isKanban, kanban(), tasks()))</span>
+<span class="nc" id="L118">                .andThen(menu())</span>
+<span class="nc" id="L119">                .andThen(status())</span>
+<span class="nc" id="L120">                .andThen(prompt());</span>
+        }
+
+        // ─────────────────────────────────────────────────────────────
+        //  Individual view components
+        // ─────────────────────────────────────────────────────────────
+
+        public static View&lt;State&gt; clear() {
+<span class="nc" id="L128">            return state -&gt; CLEAR + CURSOR_HOME;</span>
+        }
+
+        public static View&lt;State&gt; header() {
+<span class="nc" id="L132">            return state -&gt; {</span>
+<span class="nc" id="L133">                int w = state.width();</span>
+<span class="nc" id="L134">                int headerWidth = w - 4;</span>
+<span class="nc" id="L135">                String title = ICON_TASK + &quot;  TASK MANAGER&quot;;</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">                String mode = state.isKanban() ? &quot;KANBAN&quot; : &quot;LIST&quot;;</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">                String hint = state.isKanban()</span>
+<span class="nc" id="L138">                    ? &quot;&quot;</span>
+<span class="nc" id="L139">                    : &quot; (&lt;&quot; + State.KANBAN_MIN_WIDTH + &quot; cols)&quot;;</span>
+<span class="nc" id="L140">                String subtitle =</span>
+                    &quot;HexaFun Demo  [&quot; + w + &quot;w &quot; + mode + hint + &quot;]&quot;;
+
+<span class="nc" id="L143">                return lines(</span>
+                    &quot;&quot;,
+<span class="nc" id="L145">                    color(</span>
+                        &quot;  &quot; +
+                            DBOX_TOP_LEFT +
+<span class="nc" id="L148">                            repeat(DBOX_HORIZONTAL, headerWidth) +</span>
+                            DBOX_TOP_RIGHT,
+                        CYAN
+                    ),
+<span class="nc" id="L152">                    color(&quot;  &quot; + DBOX_VERTICAL, CYAN) +</span>
+<span class="nc" id="L153">                        color(center(title, headerWidth), BOLD, BRIGHT_WHITE) +</span>
+<span class="nc" id="L154">                        color(DBOX_VERTICAL, CYAN),</span>
+<span class="nc" id="L155">                    color(&quot;  &quot; + DBOX_VERTICAL, CYAN) +</span>
+<span class="nc" id="L156">                        color(center(subtitle, headerWidth), DIM) +</span>
+<span class="nc" id="L157">                        color(DBOX_VERTICAL, CYAN),</span>
+<span class="nc" id="L158">                    color(</span>
+                        &quot;  &quot; +
+                            DBOX_BOTTOM_LEFT +
+<span class="nc" id="L161">                            repeat(DBOX_HORIZONTAL, headerWidth) +</span>
+                            DBOX_BOTTOM_RIGHT,
+                        CYAN
+                    ),
+                    &quot;&quot;
+                );
+            };
+        }
+
+        public static View&lt;State&gt; stats() {
+<span class="nc" id="L171">            return state -&gt; {</span>
+<span class="nc" id="L172">                List&lt;Task&gt; tasks = state.tasks();</span>
+<span class="nc" id="L173">                long total = tasks.size();</span>
+<span class="nc" id="L174">                long todo = state.byStatus(TaskStatus.TODO).size();</span>
+<span class="nc" id="L175">                long doing = state.byStatus(TaskStatus.DOING).size();</span>
+<span class="nc" id="L176">                long done = state.byStatus(TaskStatus.DONE).size();</span>
+<span class="nc bnc" id="L177" title="All 2 branches missed.">                int percent = total &gt; 0 ? (int) ((done * 100) / total) : 0;</span>
+
+                // Fluid segment widths
+<span class="nc" id="L180">                int available = state.width() - 6;</span>
+<span class="nc" id="L181">                int segW = available / 3;</span>
+<span class="nc" id="L182">                int extra = available % 3;</span>
+
+<span class="nc" id="L184">                String todoSeg = color(</span>
+<span class="nc" id="L185">                    center(BULLET + &quot; &quot; + todo + &quot; TODO&quot;, segW + extra),</span>
+                    BG_YELLOW,
+                    BLACK,
+                    BOLD
+                );
+<span class="nc" id="L190">                String doingSeg = color(</span>
+<span class="nc" id="L191">                    center(ICON_FLAME + &quot; &quot; + doing + &quot; DOING&quot;, segW),</span>
+                    BG_MAGENTA,
+                    BRIGHT_WHITE,
+                    BOLD
+                );
+<span class="nc" id="L196">                String doneSeg = color(</span>
+<span class="nc" id="L197">                    center(CHECK + &quot; &quot; + done + &quot; DONE&quot;, segW),</span>
+                    BG_GREEN,
+                    BLACK,
+                    BOLD
+                );
+
+                // Progress bar
+<span class="nc" id="L204">                int barW = state.width() - 8;</span>
+<span class="nc" id="L205">                int filled = (barW * percent) / 100;</span>
+<span class="nc" id="L206">                int empty = barW - filled;</span>
+
+<span class="nc" id="L208">                return lines(</span>
+                    &quot;  &quot; +
+                        todoSeg +
+<span class="nc" id="L211">                        color(PL_LEFT, YELLOW, BG_MAGENTA) +</span>
+                        doingSeg +
+<span class="nc" id="L213">                        color(PL_LEFT, MAGENTA, BG_GREEN) +</span>
+                        doneSeg +
+<span class="nc" id="L215">                        color(PL_LEFT, GREEN),</span>
+                    &quot;&quot;,
+                    &quot;  &quot; +
+<span class="nc" id="L218">                        color(repeat(BLOCK_FULL, filled), GREEN) +</span>
+<span class="nc" id="L219">                        color(repeat(BLOCK_LIGHT, empty), BRIGHT_BLACK) +</span>
+<span class="nc" id="L220">                        color(String.format(&quot; %3d%%&quot;, percent), DIM),</span>
+                    &quot;&quot;
+                );
+            };
+        }
+
+        public static View&lt;State&gt; tasks() {
+<span class="nc" id="L227">            return state -&gt; {</span>
+<span class="nc" id="L228">                int w = state.width();</span>
+<span class="nc" id="L229">                List&lt;Task&gt; tasks = state.tasks();</span>
+<span class="nc" id="L230">                int lineW = w - 4 - 9;</span>
+
+<span class="nc" id="L232">                StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L233">                sb</span>
+<span class="nc" id="L234">                    .append(</span>
+<span class="nc" id="L235">                        color(</span>
+                            &quot;  &quot; +
+                                BOX_HORIZONTAL +
+                                &quot; TASKS &quot; +
+<span class="nc" id="L239">                                repeat(BOX_HORIZONTAL, lineW),</span>
+                            DIM
+                        )
+                    )
+<span class="nc" id="L243">                    .append(&quot;\n\n&quot;);</span>
+
+<span class="nc bnc" id="L245" title="All 2 branches missed.">                if (tasks.isEmpty()) {</span>
+<span class="nc" id="L246">                    sb</span>
+<span class="nc" id="L247">                        .append(</span>
+<span class="nc" id="L248">                            color(</span>
+                                &quot;  &quot; +
+<span class="nc" id="L250">                                    center(</span>
+                                        &quot;No tasks yet. Press [a] to add one!&quot;,
+                                        w - 4
+                                    ),
+                                DIM,
+                                ITALIC
+                            )
+                        )
+<span class="nc" id="L258">                        .append(&quot;\n\n&quot;);</span>
+                } else {
+<span class="nc" id="L260">                    int idx = 1;</span>
+<span class="nc bnc" id="L261" title="All 2 branches missed.">                    for (Task task : tasks) {</span>
+<span class="nc" id="L262">                        sb.append(taskCard(task, idx++, w));</span>
+<span class="nc" id="L263">                    }</span>
+                }
+<span class="nc" id="L265">                return sb.toString();</span>
+            };
+        }
+
+        private static String taskCard(Task task, int index, int width) {
+<span class="nc bnc" id="L270" title="All 3 branches missed.">            String icon = switch (task.status()) {</span>
+<span class="nc" id="L271">                case TODO -&gt; BULLET;</span>
+<span class="nc" id="L272">                case DOING -&gt; ICON_FLAME;</span>
+<span class="nc" id="L273">                case DONE -&gt; CHECK;</span>
+            };
+<span class="nc bnc" id="L275" title="All 3 branches missed.">            String iconColor = switch (task.status()) {</span>
+<span class="nc" id="L276">                case TODO -&gt; YELLOW;</span>
+<span class="nc" id="L277">                case DOING -&gt; MAGENTA;</span>
+<span class="nc" id="L278">                case DONE -&gt; GREEN;</span>
+            };
+<span class="nc bnc" id="L280" title="All 2 branches missed.">            String titleColor = task.completed() ? DIM : BRIGHT_WHITE;</span>
+<span class="nc bnc" id="L281" title="All 3 branches missed.">            String suffix = switch (task.status()) {</span>
+<span class="nc" id="L282">                case DONE -&gt; color(&quot;  (done)&quot;, DIM, GREEN);</span>
+<span class="nc" id="L283">                case DOING -&gt; color(&quot;  (wip)&quot;, DIM, MAGENTA);</span>
+<span class="nc" id="L284">                default -&gt; &quot;&quot;;</span>
+            };
+
+<span class="nc bnc" id="L287" title="All 2 branches missed.">            int suffixLen = task.status() == TaskStatus.DONE</span>
+<span class="nc" id="L288">                ? 8</span>
+<span class="nc bnc" id="L289" title="All 2 branches missed.">                : (task.status() == TaskStatus.DOING ? 7 : 0);</span>
+<span class="nc" id="L290">            int available = width - 8 - suffixLen - 2;</span>
+<span class="nc" id="L291">            String title = task.title();</span>
+<span class="nc bnc" id="L292" title="All 2 branches missed.">            if (title.length() &gt; available) {</span>
+<span class="nc" id="L293">                title = title.substring(0, Math.max(0, available - 3)) + &quot;...&quot;;</span>
+            }
+
+<span class="nc" id="L296">            StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L297">            sb</span>
+<span class="nc" id="L298">                .append(&quot;    &quot;)</span>
+<span class="nc" id="L299">                .append(color(index + &quot; &quot;, BRIGHT_BLACK))</span>
+<span class="nc" id="L300">                .append(color(icon + &quot; &quot;, iconColor))</span>
+<span class="nc" id="L301">                .append(color(title, titleColor))</span>
+<span class="nc" id="L302">                .append(suffix)</span>
+<span class="nc" id="L303">                .append(&quot;\n&quot;);</span>
+
+<span class="nc bnc" id="L305" title="All 4 branches missed.">            if (task.description() != null &amp;&amp; !task.description().isBlank()) {</span>
+<span class="nc" id="L306">                int descW = width - 10;</span>
+<span class="nc" id="L307">                String desc = task.description();</span>
+<span class="nc bnc" id="L308" title="All 2 branches missed.">                if (desc.length() &gt; descW) desc =</span>
+<span class="nc" id="L309">                    desc.substring(0, Math.max(0, descW - 3)) + &quot;...&quot;;</span>
+<span class="nc" id="L310">                sb.append(color(&quot;        &quot; + desc, DIM)).append(&quot;\n&quot;);</span>
+            }
+<span class="nc" id="L312">            sb.append(&quot;\n&quot;);</span>
+<span class="nc" id="L313">            return sb.toString();</span>
+        }
+
+        public static View&lt;State&gt; kanban() {
+<span class="nc" id="L317">            return state -&gt; {</span>
+<span class="nc" id="L318">                List&lt;Task&gt; todo = state.byStatus(TaskStatus.TODO);</span>
+<span class="nc" id="L319">                List&lt;Task&gt; doing = state.byStatus(TaskStatus.DOING);</span>
+<span class="nc" id="L320">                List&lt;Task&gt; done = state.byStatus(TaskStatus.DONE);</span>
+
+<span class="nc" id="L322">                int totalW = state.width() - 4;</span>
+<span class="nc" id="L323">                int innerW = totalW - 2; // gutters</span>
+<span class="nc" id="L324">                int colW = innerW / 3;</span>
+<span class="nc" id="L325">                int extra = innerW % 3;</span>
+<span class="nc" id="L326">                int c1 = colW + extra,</span>
+<span class="nc" id="L327">                    c2 = colW,</span>
+<span class="nc" id="L328">                    c3 = colW;</span>
+
+<span class="nc" id="L330">                StringBuilder sb = new StringBuilder();</span>
+
+                // Top borders
+<span class="nc" id="L333">                sb</span>
+<span class="nc" id="L334">                    .append(&quot;  &quot;)</span>
+<span class="nc" id="L335">                    .append(</span>
+<span class="nc" id="L336">                        color(</span>
+                            BOX_TOP_LEFT +
+<span class="nc" id="L338">                                repeat(BOX_HORIZONTAL, c1 - 2) +</span>
+                                BOX_TOP_RIGHT,
+                            YELLOW
+                        )
+                    )
+<span class="nc" id="L343">                    .append(&quot; &quot;)</span>
+<span class="nc" id="L344">                    .append(</span>
+<span class="nc" id="L345">                        color(</span>
+                            BOX_TOP_LEFT +
+<span class="nc" id="L347">                                repeat(BOX_HORIZONTAL, c2 - 2) +</span>
+                                BOX_TOP_RIGHT,
+                            MAGENTA
+                        )
+                    )
+<span class="nc" id="L352">                    .append(&quot; &quot;)</span>
+<span class="nc" id="L353">                    .append(</span>
+<span class="nc" id="L354">                        color(</span>
+                            BOX_TOP_LEFT +
+<span class="nc" id="L356">                                repeat(BOX_HORIZONTAL, c3 - 2) +</span>
+                                BOX_TOP_RIGHT,
+                            GREEN
+                        )
+                    )
+<span class="nc" id="L361">                    .append(&quot;\n&quot;);</span>
+
+                // Headers
+<span class="nc" id="L364">                sb</span>
+<span class="nc" id="L365">                    .append(&quot;  &quot;)</span>
+<span class="nc" id="L366">                    .append(color(BOX_VERTICAL, YELLOW))</span>
+<span class="nc" id="L367">                    .append(</span>
+<span class="nc" id="L368">                        color(</span>
+<span class="nc" id="L369">                            center(</span>
+<span class="nc" id="L370">                                BULLET + &quot; TODO (&quot; + todo.size() + &quot;)&quot;,</span>
+                                c1 - 2
+                            ),
+                            BOLD,
+                            YELLOW
+                        )
+                    )
+<span class="nc" id="L377">                    .append(color(BOX_VERTICAL, YELLOW))</span>
+<span class="nc" id="L378">                    .append(&quot; &quot;)</span>
+<span class="nc" id="L379">                    .append(color(BOX_VERTICAL, MAGENTA))</span>
+<span class="nc" id="L380">                    .append(</span>
+<span class="nc" id="L381">                        color(</span>
+<span class="nc" id="L382">                            center(</span>
+<span class="nc" id="L383">                                ICON_FLAME + &quot; DOING (&quot; + doing.size() + &quot;)&quot;,</span>
+                                c2 - 2
+                            ),
+                            BOLD,
+                            MAGENTA
+                        )
+                    )
+<span class="nc" id="L390">                    .append(color(BOX_VERTICAL, MAGENTA))</span>
+<span class="nc" id="L391">                    .append(&quot; &quot;)</span>
+<span class="nc" id="L392">                    .append(color(BOX_VERTICAL, GREEN))</span>
+<span class="nc" id="L393">                    .append(</span>
+<span class="nc" id="L394">                        color(</span>
+<span class="nc" id="L395">                            center(</span>
+<span class="nc" id="L396">                                CHECK + &quot; DONE (&quot; + done.size() + &quot;)&quot;,</span>
+                                c3 - 2
+                            ),
+                            BOLD,
+                            GREEN
+                        )
+                    )
+<span class="nc" id="L403">                    .append(color(BOX_VERTICAL, GREEN))</span>
+<span class="nc" id="L404">                    .append(&quot;\n&quot;);</span>
+
+                // Separators
+<span class="nc" id="L407">                sb</span>
+<span class="nc" id="L408">                    .append(&quot;  &quot;)</span>
+<span class="nc" id="L409">                    .append(</span>
+<span class="nc" id="L410">                        color(</span>
+                            BOX_T_RIGHT +
+<span class="nc" id="L412">                                repeat(BOX_HORIZONTAL, c1 - 2) +</span>
+                                BOX_T_LEFT,
+                            YELLOW
+                        )
+                    )
+<span class="nc" id="L417">                    .append(&quot; &quot;)</span>
+<span class="nc" id="L418">                    .append(</span>
+<span class="nc" id="L419">                        color(</span>
+                            BOX_T_RIGHT +
+<span class="nc" id="L421">                                repeat(BOX_HORIZONTAL, c2 - 2) +</span>
+                                BOX_T_LEFT,
+                            MAGENTA
+                        )
+                    )
+<span class="nc" id="L426">                    .append(&quot; &quot;)</span>
+<span class="nc" id="L427">                    .append(</span>
+<span class="nc" id="L428">                        color(</span>
+                            BOX_T_RIGHT +
+<span class="nc" id="L430">                                repeat(BOX_HORIZONTAL, c3 - 2) +</span>
+                                BOX_T_LEFT,
+                            GREEN
+                        )
+                    )
+<span class="nc" id="L435">                    .append(&quot;\n&quot;);</span>
+
+                // Task rows
+<span class="nc" id="L438">                int maxRows = Math.max(</span>
+<span class="nc" id="L439">                    todo.size(),</span>
+<span class="nc" id="L440">                    Math.max(doing.size(), done.size())</span>
+                );
+<span class="nc bnc" id="L442" title="All 2 branches missed.">                if (maxRows == 0) maxRows = 1;</span>
+
+<span class="nc" id="L444">                int todoIdx = 1,</span>
+<span class="nc" id="L445">                    doingIdx = todo.size() + 1,</span>
+<span class="nc" id="L446">                    doneIdx = todo.size() + doing.size() + 1;</span>
+
+<span class="nc bnc" id="L448" title="All 2 branches missed.">                for (int i = 0; i &lt; maxRows; i++) {</span>
+<span class="nc" id="L449">                    sb.append(&quot;  &quot;).append(color(BOX_VERTICAL, YELLOW));</span>
+<span class="nc" id="L450">                    sb.append(</span>
+<span class="nc bnc" id="L451" title="All 2 branches missed.">                        i &lt; todo.size()</span>
+<span class="nc" id="L452">                            ? color(</span>
+<span class="nc" id="L453">                                  kanbanCard(todo.get(i), todoIdx++, c1 - 2),</span>
+                                  BRIGHT_WHITE
+                              )
+<span class="nc" id="L456">                            : repeat(&quot; &quot;, c1 - 2)</span>
+                    );
+<span class="nc" id="L458">                    sb.append(color(BOX_VERTICAL, YELLOW)).append(&quot; &quot;);</span>
+
+<span class="nc" id="L460">                    sb.append(color(BOX_VERTICAL, MAGENTA));</span>
+<span class="nc" id="L461">                    sb.append(</span>
+<span class="nc bnc" id="L462" title="All 2 branches missed.">                        i &lt; doing.size()</span>
+<span class="nc" id="L463">                            ? color(</span>
+<span class="nc" id="L464">                                  kanbanCard(doing.get(i), doingIdx++, c2 - 2),</span>
+                                  BRIGHT_MAGENTA
+                              )
+<span class="nc" id="L467">                            : repeat(&quot; &quot;, c2 - 2)</span>
+                    );
+<span class="nc" id="L469">                    sb.append(color(BOX_VERTICAL, MAGENTA)).append(&quot; &quot;);</span>
+
+<span class="nc" id="L471">                    sb.append(color(BOX_VERTICAL, GREEN));</span>
+<span class="nc" id="L472">                    sb.append(</span>
+<span class="nc bnc" id="L473" title="All 2 branches missed.">                        i &lt; done.size()</span>
+<span class="nc" id="L474">                            ? color(</span>
+<span class="nc" id="L475">                                  kanbanCard(done.get(i), doneIdx++, c3 - 2),</span>
+                                  DIM
+                              )
+<span class="nc" id="L478">                            : repeat(&quot; &quot;, c3 - 2)</span>
+                    );
+<span class="nc" id="L480">                    sb.append(color(BOX_VERTICAL, GREEN)).append(&quot;\n&quot;);</span>
+                }
+
+                // Bottom borders
+<span class="nc" id="L484">                sb</span>
+<span class="nc" id="L485">                    .append(&quot;  &quot;)</span>
+<span class="nc" id="L486">                    .append(</span>
+<span class="nc" id="L487">                        color(</span>
+                            BOX_BOTTOM_LEFT +
+<span class="nc" id="L489">                                repeat(BOX_HORIZONTAL, c1 - 2) +</span>
+                                BOX_BOTTOM_RIGHT,
+                            YELLOW
+                        )
+                    )
+<span class="nc" id="L494">                    .append(&quot; &quot;)</span>
+<span class="nc" id="L495">                    .append(</span>
+<span class="nc" id="L496">                        color(</span>
+                            BOX_BOTTOM_LEFT +
+<span class="nc" id="L498">                                repeat(BOX_HORIZONTAL, c2 - 2) +</span>
+                                BOX_BOTTOM_RIGHT,
+                            MAGENTA
+                        )
+                    )
+<span class="nc" id="L503">                    .append(&quot; &quot;)</span>
+<span class="nc" id="L504">                    .append(</span>
+<span class="nc" id="L505">                        color(</span>
+                            BOX_BOTTOM_LEFT +
+<span class="nc" id="L507">                                repeat(BOX_HORIZONTAL, c3 - 2) +</span>
+                                BOX_BOTTOM_RIGHT,
+                            GREEN
+                        )
+                    )
+<span class="nc" id="L512">                    .append(&quot;\n\n&quot;);</span>
+
+<span class="nc" id="L514">                return sb.toString();</span>
+            };
+        }
+
+        private static String kanbanCard(Task task, int index, int width) {
+<span class="nc" id="L519">            String title = task.title();</span>
+<span class="nc" id="L520">            int maxLen = width - 4;</span>
+<span class="nc bnc" id="L521" title="All 2 branches missed.">            if (title.length() &gt; maxLen) title =</span>
+<span class="nc" id="L522">                title.substring(0, Math.max(0, maxLen - 2)) + &quot;..&quot;;</span>
+<span class="nc" id="L523">            return pad(&quot; &quot; + index + &quot; &quot; + title, width);</span>
+        }
+
+        public static View&lt;State&gt; menu() {
+<span class="nc" id="L527">            return state -&gt;</span>
+<span class="nc" id="L528">                lines(</span>
+<span class="nc" id="L529">                    color(</span>
+<span class="nc" id="L530">                        &quot;  &quot; + repeat(BOX_HORIZONTAL, state.width() - 4),</span>
+                        DIM
+                    ),
+                    &quot;&quot;,
+                    &quot;  &quot; +
+<span class="nc" id="L535">                        color(&quot;[a]&quot;, CYAN, BOLD) +</span>
+<span class="nc" id="L536">                        color(&quot; &quot; + ICON_ADD + &quot; Add  &quot;, CYAN) +</span>
+<span class="nc" id="L537">                        color(&quot;[v]&quot;, BLUE, BOLD) +</span>
+<span class="nc" id="L538">                        color(&quot; &quot; + ICON_EYE + &quot; View  &quot;, BLUE) +</span>
+<span class="nc" id="L539">                        color(&quot;[s]&quot;, MAGENTA, BOLD) +</span>
+<span class="nc" id="L540">                        color(&quot; &quot; + ICON_FLAME + &quot; Start  &quot;, MAGENTA) +</span>
+<span class="nc" id="L541">                        color(&quot;[c]&quot;, GREEN, BOLD) +</span>
+<span class="nc" id="L542">                        color(&quot; &quot; + CHECK + &quot; Done  &quot;, GREEN) +</span>
+<span class="nc" id="L543">                        color(&quot;[d]&quot;, RED, BOLD) +</span>
+<span class="nc" id="L544">                        color(&quot; &quot; + ICON_TRASH + &quot; Del  &quot;, RED) +</span>
+<span class="nc" id="L545">                        color(&quot;[q]&quot;, BRIGHT_BLACK, BOLD) +</span>
+<span class="nc" id="L546">                        color(&quot; &quot; + CROSS + &quot; Quit&quot;, BRIGHT_BLACK),</span>
+                    &quot;&quot;
+                );
+        }
+
+        public static View&lt;State&gt; status() {
+<span class="nc" id="L552">            return state -&gt;</span>
+<span class="nc bnc" id="L553" title="All 2 branches missed.">                state.status().isEmpty()</span>
+<span class="nc" id="L554">                    ? &quot;\n&quot;</span>
+<span class="nc" id="L555">                    : color(</span>
+<span class="nc" id="L556">                          &quot;  &quot; + ARROW_RIGHT + &quot; &quot; + state.status(),</span>
+<span class="nc" id="L557">                          state.statusColor()</span>
+<span class="nc" id="L558">                      ) +</span>
+                      &quot;\n\n&quot;;
+        }
+
+        public static View&lt;State&gt; prompt() {
+<span class="nc" id="L563">            return state -&gt; color(&quot;  &gt; &quot;, CYAN, BOLD);</span>
+        }
+
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  ACTIONS - STATE TRANSITIONS VIA RESULT
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Actions transform State → Result&lt;State&gt;.
+     * Success = new state, Failure = error message to display.
+     */
+    @FunctionalInterface
+    public interface Action extends Function&lt;State, Result&lt;State&gt;&gt; {
+        /** Chain actions: if first succeeds, apply second */
+        default Action andThen(Action next) {
+<span class="nc" id="L580">            return state -&gt; this.apply(state).flatMap(next);</span>
+        }
+
+        /** Action that always succeeds with given state transform */
+        static Action of(UnaryOperator&lt;State&gt; transform) {
+<span class="nc" id="L585">            return state -&gt; Result.ok(transform.apply(state));</span>
+        }
+
+        /** Action from a Result-returning operation */
+        static Action fromResult(Function&lt;State, Result&lt;State&gt;&gt; f) {
+<span class="nc" id="L590">            return f::apply;</span>
+        }
+    }
+
+    /**
+     * Action implementations for each command.
+     */
+<span class="nc" id="L597">    public static class Actions {</span>
+
+        public static Result&lt;State&gt; create(
+            State state,
+            String title,
+            String desc
+        ) {
+<span class="nc" id="L604">            return state</span>
+<span class="nc" id="L605">                .app()</span>
+<span class="nc" id="L606">                .createTask(title, desc)</span>
+<span class="nc" id="L607">                .map(task -&gt;</span>
+<span class="nc" id="L608">                    state.withStatus(&quot;Created: &quot; + task.title(), GREEN)</span>
+                );
+        }
+
+        public static Result&lt;State&gt; start(State state, String taskId) {
+<span class="nc" id="L613">            return state</span>
+<span class="nc" id="L614">                .app()</span>
+<span class="nc" id="L615">                .startTask(taskId)</span>
+<span class="nc" id="L616">                .map(task -&gt;</span>
+<span class="nc" id="L617">                    state.withStatus(&quot;Started: &quot; + task.title(), MAGENTA)</span>
+                );
+        }
+
+        public static Result&lt;State&gt; complete(State state, String taskId) {
+<span class="nc" id="L622">            return state</span>
+<span class="nc" id="L623">                .app()</span>
+<span class="nc" id="L624">                .completeTask(taskId)</span>
+<span class="nc" id="L625">                .map(task -&gt;</span>
+<span class="nc" id="L626">                    state.withStatus(&quot;Completed: &quot; + task.title(), GREEN)</span>
+                );
+        }
+
+        public static Result&lt;State&gt; delete(State state, String taskId) {
+<span class="nc" id="L631">            return state</span>
+<span class="nc" id="L632">                .app()</span>
+<span class="nc" id="L633">                .deleteTask(taskId)</span>
+<span class="nc" id="L634">                .map(ok -&gt; state.withStatus(&quot;Deleted task&quot;, RED));</span>
+        }
+
+        /** Quick action: advances task through workflow based on current status */
+        public static Result&lt;State&gt; quickAction(State state, int index) {
+<span class="nc" id="L639">            List&lt;Task&gt; tasks = state.tasks();</span>
+<span class="nc bnc" id="L640" title="All 4 branches missed.">            if (index &lt; 1 || index &gt; tasks.size()) {</span>
+<span class="nc" id="L641">                return Result.fail(&quot;Invalid task number: &quot; + index);</span>
+            }
+
+<span class="nc" id="L644">            Task task = tasks.get(index - 1);</span>
+<span class="nc bnc" id="L645" title="All 3 branches missed.">            return switch (task.status()) {</span>
+<span class="nc" id="L646">                case TODO -&gt; start(state, task.id());</span>
+<span class="nc" id="L647">                case DOING -&gt; complete(state, task.id());</span>
+<span class="nc" id="L648">                case DONE -&gt; Result.ok(</span>
+<span class="nc" id="L649">                    state.withStatus(</span>
+<span class="nc" id="L650">                        &quot;Already completed: &quot; + task.title(),</span>
+                        YELLOW
+                    )
+                );
+            };
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  RUNTIME - THE ONLY SIDE EFFECTS
+    // ═══════════════════════════════════════════════════════════════════
+
+    private final BufferedReader reader;
+    private final View&lt;State&gt; screen;
+
+<span class="nc" id="L665">    public TasksTUI() {</span>
+<span class="nc" id="L666">        this.reader = new BufferedReader(new InputStreamReader(System.in));</span>
+<span class="nc" id="L667">        this.screen = Views.screen();</span>
+<span class="nc" id="L668">    }</span>
+
+    /** The ONE place where we print to console */
+    private void render(State state) {
+<span class="nc" id="L672">        System.out.print(screen.apply(state));</span>
+<span class="nc" id="L673">        System.out.flush();</span>
+<span class="nc" id="L674">    }</span>
+
+    /** Read a line of input */
+    private String readLine() {
+        try {
+<span class="nc" id="L679">            return reader.readLine();</span>
+<span class="nc" id="L680">        } catch (Exception e) {</span>
+<span class="nc" id="L681">            return null;</span>
+        }
+    }
+
+    /** Prompt for additional input during an action */
+    private String prompt(String message) {
+<span class="nc" id="L687">        System.out.print(color(&quot;  &quot; + message + &quot;: &quot;, CYAN));</span>
+<span class="nc" id="L688">        System.out.flush();</span>
+<span class="nc" id="L689">        return readLine();</span>
+    }
+
+    /** Main loop: render → read → process → repeat */
+    public void run(TaskApp app) {
+<span class="nc" id="L694">        State state = State.initial(app);</span>
+
+        // Enter alternate screen buffer (doesn't pollute scrollback)
+<span class="nc" id="L697">        System.out.print(ALT_SCREEN_ON);</span>
+<span class="nc" id="L698">        System.out.flush();</span>
+
+        // Ensure cleanup on exit
+<span class="nc" id="L701">        Runtime.getRuntime().addShutdownHook(new Thread(this::restoreTerminal));</span>
+
+        try {
+<span class="nc bnc" id="L704" title="All 2 branches missed.">            while (state.running()) {</span>
+<span class="nc" id="L705">                state = state.refreshWidth();</span>
+<span class="nc" id="L706">                render(state);</span>
+
+<span class="nc" id="L708">                String input = readLine();</span>
+<span class="nc" id="L709">                state = processInput(state, input);</span>
+<span class="nc" id="L710">            }</span>
+
+<span class="nc" id="L712">            render(state); // Final render with goodbye message</span>
+        } finally {
+<span class="nc" id="L714">            restoreTerminal();</span>
+        }
+<span class="nc" id="L716">    }</span>
+
+    /** Restore terminal to normal state */
+    private void restoreTerminal() {
+<span class="nc" id="L720">        System.out.print(ALT_SCREEN_OFF);</span>
+<span class="nc" id="L721">        System.out.flush();</span>
+<span class="nc" id="L722">    }</span>
+
+    /** Process input and return new state */
+    private State processInput(State state, String input) {
+<span class="nc bnc" id="L726" title="All 2 branches missed.">        if (</span>
+            input == null ||
+<span class="nc bnc" id="L728" title="All 2 branches missed.">            input.equalsIgnoreCase(&quot;q&quot;) ||</span>
+<span class="nc bnc" id="L729" title="All 2 branches missed.">            input.equalsIgnoreCase(&quot;quit&quot;)</span>
+        ) {
+<span class="nc" id="L731">            return state.stop();</span>
+        }
+
+<span class="nc" id="L734">        String cmd = input.toLowerCase().trim();</span>
+
+        // Handle commands
+<span class="nc bnc" id="L737" title="All 7 branches missed.">        Result&lt;State&gt; result = switch (cmd) {</span>
+<span class="nc" id="L738">            case &quot;a&quot;, &quot;add&quot; -&gt; handleAdd(state);</span>
+<span class="nc" id="L739">            case &quot;v&quot;, &quot;view&quot; -&gt; handleView(state);</span>
+<span class="nc" id="L740">            case &quot;s&quot;, &quot;start&quot; -&gt; handleStart(state);</span>
+<span class="nc" id="L741">            case &quot;c&quot;, &quot;complete&quot; -&gt; handleComplete(state);</span>
+<span class="nc" id="L742">            case &quot;d&quot;, &quot;delete&quot; -&gt; handleDelete(state);</span>
+<span class="nc" id="L743">            case &quot;&quot; -&gt; Result.ok(state); // Just refresh</span>
+            default -&gt; {
+<span class="nc bnc" id="L745" title="All 2 branches missed.">                if (cmd.matches(&quot;\\d+&quot;)) {</span>
+<span class="nc" id="L746">                    yield Actions.quickAction(state, Integer.parseInt(cmd));</span>
+                }
+<span class="nc" id="L748">                yield Result.ok(</span>
+<span class="nc" id="L749">                    state.withStatus(&quot;Unknown command: &quot; + input, RED)</span>
+                );
+            }
+        };
+
+        // Fold result back to state
+<span class="nc" id="L755">        return result.fold(</span>
+<span class="nc" id="L756">            error -&gt; state.withStatus(&quot;Error: &quot; + error, RED),</span>
+<span class="nc" id="L757">            newState -&gt; newState</span>
+        );
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    //  Interactive handlers (minimal I/O, delegate to Actions)
+    // ─────────────────────────────────────────────────────────────────
+
+    private Result&lt;State&gt; handleAdd(State state) {
+<span class="nc" id="L766">        System.out.println();</span>
+<span class="nc" id="L767">        String title = prompt(&quot;Title&quot;);</span>
+<span class="nc bnc" id="L768" title="All 4 branches missed.">        if (title == null || title.isBlank()) {</span>
+<span class="nc" id="L769">            return Result.ok(</span>
+<span class="nc" id="L770">                state.withStatus(&quot;Cancelled - title required&quot;, YELLOW)</span>
+            );
+        }
+<span class="nc" id="L773">        String desc = prompt(&quot;Description (optional)&quot;);</span>
+<span class="nc bnc" id="L774" title="All 2 branches missed.">        return Actions.create(state, title, desc != null ? desc : &quot;&quot;);</span>
+    }
+
+    private Result&lt;State&gt; handleView(State state) {
+<span class="nc" id="L778">        List&lt;Task&gt; tasks = state.tasks();</span>
+<span class="nc bnc" id="L779" title="All 2 branches missed.">        if (tasks.isEmpty()) {</span>
+<span class="nc" id="L780">            return Result.ok(state.withStatus(&quot;No tasks to view!&quot;, YELLOW));</span>
+        }
+
+<span class="nc" id="L783">        System.out.println();</span>
+<span class="nc" id="L784">        System.out.println(color(&quot;  Select task to view:&quot;, DIM));</span>
+<span class="nc bnc" id="L785" title="All 2 branches missed.">        for (int i = 0; i &lt; tasks.size(); i++) {</span>
+<span class="nc" id="L786">            Task t = tasks.get(i);</span>
+<span class="nc bnc" id="L787" title="All 3 branches missed.">            String icon = switch (t.status()) {</span>
+<span class="nc" id="L788">                case TODO -&gt; color(BULLET, YELLOW);</span>
+<span class="nc" id="L789">                case DOING -&gt; color(ICON_FLAME, MAGENTA);</span>
+<span class="nc" id="L790">                case DONE -&gt; color(CHECK, GREEN);</span>
+            };
+<span class="nc" id="L792">            System.out.println(</span>
+<span class="nc" id="L793">                color(&quot;    [&quot; + (i + 1) + &quot;] &quot;, BRIGHT_BLACK) + icon + &quot; &quot; + t.title()</span>
+            );
+        }
+
+<span class="nc" id="L797">        String input = prompt(&quot;Task number&quot;);</span>
+<span class="nc bnc" id="L798" title="All 4 branches missed.">        if (input == null || input.isBlank()) {</span>
+<span class="nc" id="L799">            return Result.ok(state.withStatus(&quot;Cancelled&quot;, YELLOW));</span>
+        }
+
+        try {
+<span class="nc" id="L803">            int num = Integer.parseInt(input.trim());</span>
+<span class="nc bnc" id="L804" title="All 4 branches missed.">            if (num &lt; 1 || num &gt; tasks.size()) {</span>
+<span class="nc" id="L805">                return Result.fail(&quot;Invalid task number&quot;);</span>
+            }
+<span class="nc" id="L807">            Task task = tasks.get(num - 1);</span>
+
+            // Display task details
+<span class="nc" id="L810">            System.out.println();</span>
+<span class="nc" id="L811">            int w = state.width() - 4;</span>
+<span class="nc" id="L812">            System.out.println(color(&quot;  &quot; + repeat(BOX_HORIZONTAL, w), CYAN));</span>
+<span class="nc" id="L813">            System.out.println();</span>
+
+            // Title with status icon
+<span class="nc bnc" id="L816" title="All 3 branches missed.">            String statusIcon = switch (task.status()) {</span>
+<span class="nc" id="L817">                case TODO -&gt; color(BULLET + &quot; TODO&quot;, YELLOW, BOLD);</span>
+<span class="nc" id="L818">                case DOING -&gt; color(ICON_FLAME + &quot; DOING&quot;, MAGENTA, BOLD);</span>
+<span class="nc" id="L819">                case DONE -&gt; color(CHECK + &quot; DONE&quot;, GREEN, BOLD);</span>
+            };
+<span class="nc" id="L821">            System.out.println(&quot;  &quot; + color(task.title(), BRIGHT_WHITE, BOLD));</span>
+<span class="nc" id="L822">            System.out.println(&quot;  &quot; + statusIcon);</span>
+<span class="nc" id="L823">            System.out.println();</span>
+
+            // Description
+<span class="nc bnc" id="L826" title="All 4 branches missed.">            if (task.description() != null &amp;&amp; !task.description().isBlank()) {</span>
+<span class="nc" id="L827">                System.out.println(color(&quot;  Description:&quot;, DIM));</span>
+                // Word wrap description
+<span class="nc" id="L829">                String desc = task.description();</span>
+<span class="nc" id="L830">                int maxWidth = w - 4;</span>
+<span class="nc bnc" id="L831" title="All 2 branches missed.">                while (desc.length() &gt; maxWidth) {</span>
+<span class="nc" id="L832">                    int breakPoint = desc.lastIndexOf(' ', maxWidth);</span>
+<span class="nc bnc" id="L833" title="All 2 branches missed.">                    if (breakPoint &lt;= 0) breakPoint = maxWidth;</span>
+<span class="nc" id="L834">                    System.out.println(&quot;    &quot; + desc.substring(0, breakPoint));</span>
+<span class="nc" id="L835">                    desc = desc.substring(breakPoint).trim();</span>
+<span class="nc" id="L836">                }</span>
+<span class="nc bnc" id="L837" title="All 2 branches missed.">                if (!desc.isEmpty()) {</span>
+<span class="nc" id="L838">                    System.out.println(&quot;    &quot; + desc);</span>
+                }
+<span class="nc" id="L840">            } else {</span>
+<span class="nc" id="L841">                System.out.println(color(&quot;  No description&quot;, DIM, ITALIC));</span>
+            }
+
+<span class="nc" id="L844">            System.out.println();</span>
+<span class="nc" id="L845">            System.out.println(color(&quot;  &quot; + repeat(BOX_HORIZONTAL, w), CYAN));</span>
+<span class="nc" id="L846">            System.out.println();</span>
+<span class="nc" id="L847">            prompt(&quot;Press Enter to continue&quot;);</span>
+
+<span class="nc" id="L849">            return Result.ok(state.withStatus(&quot;Viewed: &quot; + task.title(), BLUE));</span>
+<span class="nc" id="L850">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L851">            return Result.fail(&quot;Invalid number&quot;);</span>
+        }
+    }
+
+    private Result&lt;State&gt; handleStart(State state) {
+<span class="nc" id="L856">        List&lt;Task&gt; todo = state.byStatus(TaskStatus.TODO);</span>
+<span class="nc bnc" id="L857" title="All 2 branches missed.">        if (todo.isEmpty()) {</span>
+<span class="nc" id="L858">            return Result.ok(</span>
+<span class="nc" id="L859">                state.withStatus(&quot;No TODO tasks to start!&quot;, YELLOW)</span>
+            );
+        }
+
+<span class="nc" id="L863">        System.out.println();</span>
+<span class="nc" id="L864">        System.out.println(color(&quot;  TODO tasks:&quot;, DIM));</span>
+<span class="nc bnc" id="L865" title="All 2 branches missed.">        for (int i = 0; i &lt; todo.size(); i++) {</span>
+<span class="nc" id="L866">            System.out.println(</span>
+<span class="nc" id="L867">                color(&quot;    [&quot; + (i + 1) + &quot;] &quot;, BRIGHT_BLACK) +</span>
+<span class="nc" id="L868">                    todo.get(i).title()</span>
+            );
+        }
+
+<span class="nc" id="L872">        String input = prompt(&quot;Task number to start&quot;);</span>
+<span class="nc bnc" id="L873" title="All 4 branches missed.">        if (input == null || input.isBlank()) {</span>
+<span class="nc" id="L874">            return Result.ok(state.withStatus(&quot;Cancelled&quot;, YELLOW));</span>
+        }
+
+        try {
+<span class="nc" id="L878">            int num = Integer.parseInt(input.trim());</span>
+<span class="nc bnc" id="L879" title="All 4 branches missed.">            if (num &lt; 1 || num &gt; todo.size()) {</span>
+<span class="nc" id="L880">                return Result.fail(&quot;Invalid task number&quot;);</span>
+            }
+<span class="nc" id="L882">            return Actions.start(state, todo.get(num - 1).id());</span>
+<span class="nc" id="L883">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L884">            return Result.fail(&quot;Invalid number&quot;);</span>
+        }
+    }
+
+    private Result&lt;State&gt; handleComplete(State state) {
+<span class="nc" id="L889">        List&lt;Task&gt; doing = state.byStatus(TaskStatus.DOING);</span>
+<span class="nc bnc" id="L890" title="All 2 branches missed.">        List&lt;Task&gt; completable = !doing.isEmpty()</span>
+<span class="nc" id="L891">            ? doing</span>
+<span class="nc" id="L892">            : state.byStatus(TaskStatus.TODO);</span>
+
+<span class="nc bnc" id="L894" title="All 2 branches missed.">        if (completable.isEmpty()) {</span>
+<span class="nc" id="L895">            return Result.ok(state.withStatus(&quot;No tasks to complete!&quot;, YELLOW));</span>
+        }
+
+<span class="nc" id="L898">        System.out.println();</span>
+<span class="nc bnc" id="L899" title="All 2 branches missed.">        String label = !doing.isEmpty() ? &quot;DOING tasks:&quot; : &quot;TODO tasks:&quot;;</span>
+<span class="nc" id="L900">        System.out.println(color(&quot;  &quot; + label, DIM));</span>
+<span class="nc bnc" id="L901" title="All 2 branches missed.">        for (int i = 0; i &lt; completable.size(); i++) {</span>
+<span class="nc" id="L902">            System.out.println(</span>
+<span class="nc" id="L903">                color(&quot;    [&quot; + (i + 1) + &quot;] &quot;, BRIGHT_BLACK) +</span>
+<span class="nc" id="L904">                    completable.get(i).title()</span>
+            );
+        }
+
+<span class="nc" id="L908">        String input = prompt(&quot;Task number to complete&quot;);</span>
+<span class="nc bnc" id="L909" title="All 4 branches missed.">        if (input == null || input.isBlank()) {</span>
+<span class="nc" id="L910">            return Result.ok(state.withStatus(&quot;Cancelled&quot;, YELLOW));</span>
+        }
+
+        try {
+<span class="nc" id="L914">            int num = Integer.parseInt(input.trim());</span>
+<span class="nc bnc" id="L915" title="All 4 branches missed.">            if (num &lt; 1 || num &gt; completable.size()) {</span>
+<span class="nc" id="L916">                return Result.fail(&quot;Invalid task number&quot;);</span>
+            }
+<span class="nc" id="L918">            return Actions.complete(state, completable.get(num - 1).id());</span>
+<span class="nc" id="L919">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L920">            return Result.fail(&quot;Invalid number&quot;);</span>
+        }
+    }
+
+    private Result&lt;State&gt; handleDelete(State state) {
+<span class="nc" id="L925">        List&lt;Task&gt; tasks = state.tasks();</span>
+<span class="nc bnc" id="L926" title="All 2 branches missed.">        if (tasks.isEmpty()) {</span>
+<span class="nc" id="L927">            return Result.ok(state.withStatus(&quot;No tasks to delete!&quot;, YELLOW));</span>
+        }
+
+<span class="nc" id="L930">        System.out.println();</span>
+<span class="nc" id="L931">        System.out.println(color(&quot;  All tasks:&quot;, DIM));</span>
+<span class="nc bnc" id="L932" title="All 2 branches missed.">        for (int i = 0; i &lt; tasks.size(); i++) {</span>
+<span class="nc" id="L933">            Task t = tasks.get(i);</span>
+<span class="nc bnc" id="L934" title="All 2 branches missed.">            String icon = t.completed()</span>
+<span class="nc" id="L935">                ? color(CHECK, GREEN)</span>
+<span class="nc" id="L936">                : color(BULLET, YELLOW);</span>
+<span class="nc" id="L937">            System.out.println(</span>
+<span class="nc" id="L938">                color(&quot;    [&quot; + (i + 1) + &quot;] &quot;, BRIGHT_BLACK) +</span>
+                    icon +
+                    &quot; &quot; +
+<span class="nc" id="L941">                    t.title()</span>
+            );
+        }
+
+<span class="nc" id="L945">        String input = prompt(&quot;Task number to delete&quot;);</span>
+<span class="nc bnc" id="L946" title="All 4 branches missed.">        if (input == null || input.isBlank()) {</span>
+<span class="nc" id="L947">            return Result.ok(state.withStatus(&quot;Cancelled&quot;, YELLOW));</span>
+        }
+
+        try {
+<span class="nc" id="L951">            int num = Integer.parseInt(input.trim());</span>
+<span class="nc bnc" id="L952" title="All 4 branches missed.">            if (num &lt; 1 || num &gt; tasks.size()) {</span>
+<span class="nc" id="L953">                return Result.fail(&quot;Invalid task number&quot;);</span>
+            }
+<span class="nc" id="L955">            return Actions.delete(state, tasks.get(num - 1).id());</span>
+<span class="nc" id="L956">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L957">            return Result.fail(&quot;Invalid number&quot;);</span>
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  MAIN
+    // ═══════════════════════════════════════════════════════════════════
+
+    public static void main(String[] args) {
+<span class="nc" id="L966">        TaskApp app = TaskApp.withInMemoryRepo();</span>
+
+        // Sample data in different states
+<span class="nc" id="L969">        app.createTask(</span>
+            &quot;Learn HexaFun&quot;,
+            &quot;Study the fluent DSL and port registry&quot;
+        );
+<span class="nc" id="L973">        app.createTask(&quot;Write tests&quot;, &quot;Ensure everything works correctly&quot;);</span>
+
+<span class="nc" id="L975">        Result&lt;Task&gt; tui = app.createTask(</span>
+            &quot;Build a TUI&quot;,
+            &quot;Create a terminal user interface&quot;
+        );
+<span class="nc" id="L979">        tui.map(t -&gt; app.startTask(t.id()));</span>
+
+<span class="nc" id="L981">        Result&lt;Task&gt; docs = app.createTask(</span>
+            &quot;Read the docs&quot;,
+            &quot;Check out the documentation&quot;
+        );
+<span class="nc" id="L985">        docs.map(t -&gt;</span>
+<span class="nc" id="L986">            app.startTask(t.id()).map(started -&gt; app.completeTask(started.id()))</span>
+        );
+
+<span class="nc" id="L989">        new TasksTUI().run(app);</span>
+<span class="nc" id="L990">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

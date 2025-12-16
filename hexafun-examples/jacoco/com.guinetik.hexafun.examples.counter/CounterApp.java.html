@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CounterApp.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script>
+<!-- <!-- terminal-javadocs-injected [coverage] -->
+<link rel="stylesheet" href="../../terminal-styles/terminaljavadocs-coverage.min.css">
+<script src="../../terminal-styles/terminaljavadocs.min.js" defer></script>
+</head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">HexaFun Examples</a> &gt; <a href="index.source.html" class="el_package">com.guinetik.hexafun.examples.counter</a> &gt; <span class="el_source">CounterApp.java</span></div><h1>CounterApp.java</h1><pre class="source lang-java linenums">package com.guinetik.hexafun.examples.counter;
+
+import com.guinetik.hexafun.HexaApp;
+import com.guinetik.hexafun.HexaFun;
+import com.guinetik.hexafun.fun.Result;
+import com.guinetik.hexafun.examples.counter.CounterInputs.*;
+
+import static com.guinetik.hexafun.examples.counter.CounterUseCases.*;
+import static com.guinetik.hexafun.examples.counter.CounterValidators.*;
+
+/**
+ * Counter application demonstrating the improved HexaFun DSL.
+ *
+ * &lt;p&gt;Key improvements showcased:
+ * &lt;ul&gt;
+ *   &lt;li&gt;Type-safe keys (UseCaseKey) instead of strings&lt;/li&gt;
+ *   &lt;li&gt;Cleaner syntax: validate/handle instead of from/to&lt;/li&gt;
+ *   &lt;li&gt;Implicit closure: no .and() chaining needed&lt;/li&gt;
+ *   &lt;li&gt;Validator chaining: multiple .validate() calls&lt;/li&gt;
+ * &lt;/ul&gt;
+ */
+public class CounterApp {
+
+    private final HexaApp app;
+
+<span class="fc" id="L26">    public CounterApp() {</span>
+<span class="fc" id="L27">        this.app = HexaFun.dsl()</span>
+
+            // Increment: single validator
+<span class="fc" id="L30">            .useCase(INCREMENT)</span>
+<span class="fc" id="L31">                .validate(CounterValidators::validateIncrement)</span>
+<span class="fc" id="L32">                .handle(input -&gt; Result.ok(input.counter().increment()))</span>
+
+            // Decrement: single validator
+<span class="fc" id="L35">            .useCase(DECREMENT)</span>
+<span class="fc" id="L36">                .validate(CounterValidators::validateDecrement)</span>
+<span class="fc" id="L37">                .handle(input -&gt; Result.ok(input.counter().decrement()))</span>
+
+            // Add: chained validators (counter not null + amount in range)
+<span class="fc" id="L40">            .useCase(ADD)</span>
+<span class="fc" id="L41">                .validate(CounterValidators::validateAddCounter)</span>
+<span class="fc" id="L42">                .validate(CounterValidators::validateAddAmount)</span>
+<span class="fc" id="L43">                .handle(input -&gt; Result.ok(input.counter().add(input.amount())))</span>
+
+<span class="fc" id="L45">            .build();</span>
+<span class="fc" id="L46">    }</span>
+
+    /**
+     * Increment a counter.
+     */
+    public Result&lt;Counter&gt; increment(Counter counter) {
+<span class="fc" id="L52">        return app.invoke(INCREMENT, new IncrementInput(counter));</span>
+    }
+
+    /**
+     * Decrement a counter.
+     */
+    public Result&lt;Counter&gt; decrement(Counter counter) {
+<span class="fc" id="L59">        return app.invoke(DECREMENT, new DecrementInput(counter));</span>
+    }
+
+    /**
+     * Add amount to a counter.
+     */
+    public Result&lt;Counter&gt; add(Counter counter, int amount) {
+<span class="fc" id="L66">        return app.invoke(ADD, new AddInput(counter, amount));</span>
+    }
+
+    /**
+     * Get the underlying HexaApp for testing.
+     */
+    public HexaApp getApp() {
+<span class="fc" id="L73">        return app;</span>
+    }
+
+    // ----- Demo -----
+
+    public static void main(String[] args) {
+<span class="nc" id="L79">        CounterApp app = new CounterApp();</span>
+<span class="nc" id="L80">        Counter counter = Counter.zero();</span>
+
+<span class="nc" id="L82">        System.out.println(&quot;Starting: &quot; + counter);</span>
+
+        // Increment
+<span class="nc" id="L85">        Result&lt;Counter&gt; r1 = app.increment(counter);</span>
+<span class="nc" id="L86">        System.out.println(&quot;After increment: &quot; + r1.get());</span>
+
+        // Add 10
+<span class="nc" id="L89">        Result&lt;Counter&gt; r2 = app.add(r1.get(), 10);</span>
+<span class="nc" id="L90">        System.out.println(&quot;After add(10): &quot; + r2.get());</span>
+
+        // Try invalid add (amount too large)
+<span class="nc" id="L93">        Result&lt;Counter&gt; r3 = app.add(r2.get(), 500);</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">        System.out.println(&quot;After add(500): &quot; + (r3.isSuccess() ? r3.get() : &quot;FAILED: &quot; + r3.error()));</span>
+
+        // Decrement
+<span class="nc" id="L97">        Result&lt;Counter&gt; r4 = app.decrement(r2.get());</span>
+<span class="nc" id="L98">        System.out.println(&quot;After decrement: &quot; + r4.get());</span>
+
+        // Try null counter
+<span class="nc" id="L101">        Result&lt;Counter&gt; r5 = app.increment(null);</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">        System.out.println(&quot;Increment null: &quot; + (r5.isSuccess() ? r5.get() : &quot;FAILED: &quot; + r5.error()));</span>
+<span class="nc" id="L103">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
