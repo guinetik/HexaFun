@@ -5,6 +5,7 @@ import static com.guinetik.hexafun.examples.tui.Ansi.*;
 import com.guinetik.hexafun.examples.tasks.Task;
 import com.guinetik.hexafun.examples.tasks.TaskApp;
 import com.guinetik.hexafun.examples.tasks.TaskStatus;
+import com.guinetik.hexafun.examples.tui.HexaTerminal;
 import com.guinetik.hexafun.examples.tui.View;
 import com.guinetik.hexafun.examples.tui.Widgets;
 import com.guinetik.hexafun.fun.Result;
@@ -92,38 +93,9 @@ public class TasksTUI {
                 .toList();
         }
 
-        /** Terminal width detection */
+        /** Terminal width detection - delegates to shared Terminal utility */
         private static int detectWidth() {
-            // System property override
-            String prop = System.getProperty("columns");
-            if (prop != null) {
-                try {
-                    return Math.max(MIN_WIDTH, Integer.parseInt(prop.trim()));
-                } catch (NumberFormatException ignored) {}
-            }
-
-            // COLUMNS env
-            String env = System.getenv("COLUMNS");
-            if (env != null) {
-                try {
-                    return Math.max(MIN_WIDTH, Integer.parseInt(env.trim()));
-                } catch (NumberFormatException ignored) {}
-            }
-
-            // tput cols
-            try {
-                Process p = new ProcessBuilder("tput", "cols").start();
-                String line = new BufferedReader(
-                    new InputStreamReader(p.getInputStream())
-                ).readLine();
-                p.waitFor();
-                if (line != null && !line.isBlank()) {
-                    int w = Integer.parseInt(line.trim());
-                    if (w > 0) return Math.max(MIN_WIDTH, w);
-                }
-            } catch (Exception ignored) {}
-
-            return 120; // Default for Kanban
+            return HexaTerminal.detectWidth(MIN_WIDTH, 120);
         }
     }
 
@@ -721,15 +693,32 @@ public class TasksTUI {
     public void run(TaskApp app) {
         State state = State.initial(app);
 
-        while (state.running()) {
-            state = state.refreshWidth();
-            render(state);
+        // Enter alternate screen buffer (doesn't pollute scrollback)
+        System.out.print(ALT_SCREEN_ON);
+        System.out.flush();
 
-            String input = readLine();
-            state = processInput(state, input);
+        // Ensure cleanup on exit
+        Runtime.getRuntime().addShutdownHook(new Thread(this::restoreTerminal));
+
+        try {
+            while (state.running()) {
+                state = state.refreshWidth();
+                render(state);
+
+                String input = readLine();
+                state = processInput(state, input);
+            }
+
+            render(state); // Final render with goodbye message
+        } finally {
+            restoreTerminal();
         }
+    }
 
-        render(state); // Final render with goodbye message
+    /** Restore terminal to normal state */
+    private void restoreTerminal() {
+        System.out.print(ALT_SCREEN_OFF);
+        System.out.flush();
     }
 
     /** Process input and return new state */
