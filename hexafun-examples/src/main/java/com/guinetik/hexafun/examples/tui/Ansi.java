@@ -72,6 +72,10 @@ public final class Ansi {
     public static final String HIDE_CURSOR = "\u001B[?25l";
     public static final String SHOW_CURSOR = "\u001B[?25h";
 
+    // Alternate screen buffer (doesn't pollute scrollback)
+    public static final String ALT_SCREEN_ON = "\u001B[?1049h";
+    public static final String ALT_SCREEN_OFF = "\u001B[?1049l";
+
     // ═══════════════════════════════════════════════════════════════════
     //  BOX DRAWING - UNICODE
     // ═══════════════════════════════════════════════════════════════════
