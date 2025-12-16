@@ -20,13 +20,44 @@ HexaFun brings **Hexagonal Architecture** into the functional age with minimal b
 
 ---
 
+## Installation
+
+Add HexaFun to your Maven project:
+
+```xml
+<dependency>
+    <groupId>com.guinetik</groupId>
+    <artifactId>hexafun-core</artifactId>
+    <version>1.0.1</version>
+</dependency>
+```
+
+Or with Gradle:
+
+```groovy
+implementation 'com.guinetik:hexafun-core:1.0.1'
+```
+
+**Requirements:** Java 17+
+
+---
+
 ## Example Applications
 
-- **Counter**: A counter application demonstrating the fluent DSL in `com.guinetik.hexafun.examples.counter`
+| Example | Description |
+|---------|-------------|
+| **Counter** | Simple increment/add with validation |
+| **Tasks** | Kanban board TUI (TODO → DOING → DONE) |
+| **Sysmon** | System monitor with 4 output adapters (TUI, CLI, JSON, Prometheus) |
 
-Run the CounterApp class to see it in action:
+Run the interactive launcher:
 ```shell
 mvn exec:java -pl hexafun-examples
+```
+
+Or launch a specific example:
+```shell
+mvn exec:java -pl hexafun-examples -Dexec.args="sysmon"
 ```
 
 ---
