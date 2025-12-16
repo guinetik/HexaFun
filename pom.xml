@@ -10,7 +10,7 @@
 
     <groupId>com.guinetik</groupId>
     <artifactId>hexafun-parent</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <packaging>pom</packaging>
 
     <name>HexaFun</name>

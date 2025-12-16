@@ -7,11 +7,11 @@
     <parent>
         <groupId>com.guinetik</groupId>
         <artifactId>hexafun-parent</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.1</version>
     </parent>
 
     <artifactId>hexafun-examples</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <packaging>jar</packaging>
 
     <name>HexaFun Examples</name>
