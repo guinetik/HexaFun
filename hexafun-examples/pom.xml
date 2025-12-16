@@ -7,11 +7,11 @@
     <parent>
         <groupId>com.guinetik</groupId>
         <artifactId>hexafun-parent</artifactId>
-        <version>0.1.0-RC</version>
+        <version>1.0.0</version>
     </parent>
 
     <artifactId>hexafun-examples</artifactId>
-    <version>0.1.0-RC</version>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
 
     <name>HexaFun Examples</name>
@@ -25,6 +25,12 @@
         <dependency>
             <groupId>com.guinetik</groupId>
             <artifactId>hexafun-core</artifactId>
+        </dependency>
+        <!-- OSHI for cross-platform system metrics -->
+        <dependency>
+            <groupId>com.github.oshi</groupId>
+            <artifactId>oshi-core</artifactId>
+            <version>6.4.0</version>
         </dependency>
         <!-- Test dependencies -->
         <dependency>
@@ -96,7 +102,7 @@
                     </execution>
                 </executions>
             </plugin>
-            <!-- JaCoCo Plugin for Code Coverage -->
+            <!-- JaCoCo Plugin for Code Coverage (report only, no enforcement for examples) -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -114,26 +120,7 @@
                             <goal>report</goal>
                         </goals>
                     </execution>
-                    <execution>
-                        <id>check</id>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                        <configuration>
-                            <rules>
-                                <rule>
-                                    <element>BUNDLE</element>
-                                    <limits>
-                                        <limit>
-                                            <counter>INSTRUCTION</counter>
-                                            <value>COVEREDRATIO</value>
-                                            <minimum>0.10</minimum>
-                                        </limit>
-                                    </limits>
-                                </rule>
-                            </rules>
-                        </configuration>
-                    </execution>
+                    <!-- No check execution - examples are demo code, not library code -->
                 </executions>
             </plugin>
             <!-- Inject Terminal Javadocs styles -->

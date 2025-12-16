@@ -579,7 +579,8 @@ and a simple list on narrow ones.
 
 ## Next Steps
 
-- Explore the [Fluent DSL](fluent.html) for more advanced patterns
+- Learn about [Output Adapters](adapters.html) for multi-format output
+- Explore the [Fluent DSL](fluent.html) for use case composition patterns
 - Check out the [Counter Example](/hexafun-examples/xref/com/guinetik/hexafun/examples/counter/CounterApp.html#CounterApp) for a simpler starting point
 - Add your own adapters: GraphQL, WebSocket, message queues
 

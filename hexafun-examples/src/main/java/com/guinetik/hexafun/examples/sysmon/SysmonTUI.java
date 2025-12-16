@@ -39,7 +39,7 @@ public class SysmonTUI {
     private InputStream ttyInput;
 
     public SysmonTUI() {
-        this.app = SysmonApp.createApp(new RealMetricsProvider());
+        this.app = SysmonApp.createApp(new OshiMetricsProvider());
         this.screen = SysmonView.screen();
     }
 
