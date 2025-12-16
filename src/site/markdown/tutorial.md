@@ -4,7 +4,7 @@ This tutorial walks you through building a complete task management application
 using HexaFun's functional hexagonal architecture approach. By the end, you'll have
 a fully functional Kanban-style task manager with a beautiful terminal UI.
 
-![Task Manager TUI](images/tui.png)
+<script src="https://asciinema.org/a/762259.js" id="asciicast-762259" async="true"></script>
 
 ---
 

@@ -17,18 +17,56 @@
             <topBarEnabled>true</topBarEnabled>
             <sideBarEnabled>false</sideBarEnabled>
             <topBarIcon>
-                <name>${terminaljavadocs.project.name}</name>
-                <alt>${terminaljavadocs.project.name}</alt>
-                <src>${terminaljavadocs.project.logo}</src>
+                <name>HexaFun</name>
+                <alt>HexaFun - Hexagonal Architecture for Java</alt>
+                <src>./images/logo.svg</src>
                 <href>/index.html</href>
             </topBarIcon>
             <navBarStyle>navbar-dark</navBarStyle>
             <sourceLineNumbersEnabled>true</sourceLineNumbersEnabled>
             <skipGenerationDate>true</skipGenerationDate>
+            <twitter>
+                <user>guinetik</user>
+                <showUser>true</showUser>
+                <showFollowers>true</showFollowers>
+            </twitter>
+            <googleAnalytics>
+                <accountId>G-9J979FF4TK</accountId>
+                <anonymizeIp>false</anonymizeIp>
+                <forceSSL>false</forceSSL>
+            </googleAnalytics>
         </fluidoSkin>
     </custom>
 
     <body>
+        <head>
+            <![CDATA[
+                <!-- SEO Meta Tags -->
+                <meta name="description" content="HexaFun - A lightweight, functional approach to Hexagonal Architecture in Java. Fluent DSL for ports, adapters, and use cases with zero dependencies." />
+                <meta name="keywords" content="hexagonal architecture, ports and adapters, java, clean architecture, domain driven design, ddd, functional programming, fluent api, use cases" />
+                <meta name="author" content="guinetik" />
+
+                <!-- Open Graph / Facebook -->
+                <meta property="og:type" content="website" />
+                <meta property="og:url" content="https://hexafun.guinetik.com/" />
+                <meta property="og:title" content="HexaFun - Functional Patterns for Hexagonal Architecture" />
+                <meta property="og:description" content="A lightweight, functional approach to Hexagonal Architecture in Java. Fluent DSL for ports, adapters, and use cases with zero dependencies." />
+                <meta property="og:image" content="https://hexafun.guinetik.com/images/og-image.png" />
+
+                <!-- Twitter Card -->
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:site" content="@guinetik" />
+                <meta name="twitter:title" content="HexaFun - Hexagonal Architecture for Java" />
+                <meta name="twitter:description" content="A lightweight, functional approach to Hexagonal Architecture in Java." />
+                <meta name="twitter:image" content="https://hexafun.guinetik.com/images/og-image.png" />
+
+                <!-- Favicon -->
+                <link rel="icon" type="image/svg+xml" href="./images/favicon.svg" />
+                <link rel="icon" type="image/png" sizes="32x32" href="./images/favicon-32x32.png" />
+                <link rel="icon" type="image/png" sizes="16x16" href="./images/favicon-16x16.png" />
+            ]]>
+        </head>
+
         <breadcrumbs>
             <item name="HexaFun" href="index.html" />
         </breadcrumbs>
