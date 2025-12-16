@@ -30,17 +30,20 @@
                 <showUser>true</showUser>
                 <showFollowers>true</showFollowers>
             </twitter>
-            <googleAnalytics>
-                <accountId>G-9J979FF4TK</accountId>
-                <anonymizeIp>false</anonymizeIp>
-                <forceSSL>false</forceSSL>
-            </googleAnalytics>
         </fluidoSkin>
     </custom>
 
     <body>
         <head>
             <![CDATA[
+                <!-- Google Analytics 4 -->
+                <script async src="https://www.googletagmanager.com/gtag/js?id=G-9J979FF4TK"></script>
+                <script>
+                    window.dataLayer = window.dataLayer || [];
+                    function gtag(){dataLayer.push(arguments);}
+                    gtag('js', new Date());
+                    gtag('config', 'G-9J979FF4TK');
+                </script>
                 <!-- SEO Meta Tags -->
                 <meta name="description" content="HexaFun - A lightweight, functional approach to Hexagonal Architecture in Java. Fluent DSL for ports, adapters, and use cases with zero dependencies." />
                 <meta name="keywords" content="hexagonal architecture, ports and adapters, java, clean architecture, domain driven design, ddd, functional programming, fluent api, use cases" />
