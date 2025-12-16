@@ -37,6 +37,25 @@ public abstract class HexaApp {
     }
 
     /**
+     * Add a use case using a type-safe key.
+     *
+     * <p>Example:
+     * <pre class="language-java">{@code
+     * app.withUseCase(CREATE_TASK, new CreateTaskHandler(app));
+     * }</pre>
+     *
+     * @param key The type-safe use case key
+     * @param useCase The use case implementation
+     * @param <I> Input type
+     * @param <O> Output type
+     * @return This HexaApp for chaining
+     */
+    public <I, O> HexaApp withUseCase(UseCaseKey<I, O> key, UseCase<I, O> useCase) {
+        useCases.put(key.name(), useCase);
+        return this;
+    }
+
+    /**
      * Register a port (output adapter) by its type.
      * Provides type-safe dependency injection for output ports.
      *
