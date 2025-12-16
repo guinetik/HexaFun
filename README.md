@@ -1,4 +1,6 @@
 # HexaFun ⚽
+[![Maven Central](https://img.shields.io/maven-central/v/com.guinetik/hexafun-core.svg)](https://central.sonatype.com/artifact/com.guinetik/hexafun-core)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 > A functional, declarative Java framework for building Hexagonal Architecture apps with serious swagg.
 

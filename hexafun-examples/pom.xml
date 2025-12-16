@@ -18,7 +18,7 @@
     <description>Examples of using HexaFun</description>
 
     <properties>
-        <exec.mainClass>com.guinetik.hexafun.examples.counter.CounterApp</exec.mainClass>
+        <exec.mainClass>com.guinetik.hexafun.examples.ExamplesLauncher</exec.mainClass>
     </properties>
 
     <dependencies>
